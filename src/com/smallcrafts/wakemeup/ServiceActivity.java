@@ -26,6 +26,7 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.media.AudioManager;
+import android.media.MediaPlayer;
 import android.media.Ringtone;
 import android.media.RingtoneManager;
 
@@ -208,24 +209,34 @@ public class ServiceActivity extends Activity implements LocationListener {
 		Log.d("SERVICE", "Stopping all non screen notifications");
 		if (notificationSound != null){
 			notificationSound.stop();
+			notificationSound = null;
 		}
 		if (notificationVibrator != null){
 			notificationVibrator.cancel();
+			notificationVibrator = null;
 		}
 	}
 	
 	private void notifyArrival(){
 		Log.d("SERVICE","Notifications Launched. Location Updates removed.");
-		if (sound){
-			Uri notification = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM);
+		
+		Uri notification = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM);
+		int ringDuration;
+		ringDuration = MediaPlayer.create(getApplicationContext(), notification).getDuration();
+		Log.d("SERVICE", "Current Ringtone Durantion: " + Integer.toString(ringDuration));
+		
+		long division = Math.round(ringDuration/8);
+		long[] pattern = {0, division * 7, division * 2};
+		
+		if (notificationSound == null && sound){
 			notificationSound = RingtoneManager.getRingtone(getApplicationContext(), notification);
 			notificationSound.play();
 		}
 		
-		notificationVibrator = (Vibrator) getSystemService(VIBRATOR_SERVICE);
-		
-		if (vibrator & notificationVibrator.hasVibrator()){
-
+		if (notificationVibrator == null && vibrator){
+			notificationVibrator = (Vibrator) getSystemService(VIBRATOR_SERVICE);
+			if (notificationVibrator.hasVibrator())
+				notificationVibrator.vibrate(pattern, 0);
 		}
 		mSystemUiHider.show();
 	}
@@ -359,8 +370,17 @@ public class ServiceActivity extends Activity implements LocationListener {
 		
 		//TODO Algorithm for minimizing location access
 		
+		float comparableDistance;
 		
-		if (distance < thresholdDistance){
+		if (units){
+			comparableDistance = (float) ((float) distance*0.621371);
+		} else {
+			comparableDistance = distance;
+		}
+		
+		Log.d("SERVICE", "Comparable Distance: " + Float.toString(comparableDistance));
+		
+		if (comparableDistance < thresholdDistance){
 			locationManager.removeUpdates(this);
 			notifyArrival();
 		}

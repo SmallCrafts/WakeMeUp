@@ -24,20 +24,7 @@ public class CustomAddress extends Address{
 		if (a.getAddressLine(2) != null)
 			this.setAddressLine(2, a.getAddressLine(2));
 		
-//		Log.d("CUSTOMADDRESS", "Source Lines: "+ Integer.toString(maxLines));
-//		for (int i = 0; i < maxLines; i++){
-//			this.setAddressLine(i, a.getAddressLine(i));
-//			if ( i == 0){
-//				for (int j = 1; j < maxLines; j++){
-//					this.setAddressLine(j, a.getAddressLine(j));
-//				}
-//			}
-//			Log.d("CUSTOMADDRESS", "AddressLine " + Integer.toString(i) + " : " + a.getAddressLine(i));
-//		}
-		
 		maxLines = this.getMaxAddressLineIndex();
-
-		Log.d("CUSTOMADDRESS", "NEW Lines: "+ Integer.toString(maxLines));
 		
 		for (int i = 0; i < maxLines; i++){
 			Log.d("CUSTOMADDRESS", "AddressLine " + Integer.toString(i) + " : " + getAddressLine(i));
@@ -60,38 +47,6 @@ public class CustomAddress extends Address{
 		this.setSubThoroughfare(a.getSubThoroughfare());
 		this.setThoroughfare(a.getThoroughfare());
 		this.setUrl(a.getUrl());
-		
-		if (getAdminArea() != null)
-			Log.d("CUSTOMADDRESS", getAdminArea());
-		if (getCountryCode() != null)
-			Log.d("CUSTOMADDRESS", getCountryCode());
-		if (getCountryName() != null)
-			Log.d("CUSTOMADDRESS", getCountryName());
-		if (getFeatureName() != null)
-			Log.d("CUSTOMADDRESS", getFeatureName());
-		if (getLatitude() != 0)
-			Log.d("CUSTOMADDRESS", Double.toString(getLatitude()));
-		if (getLocality() != null)
-			Log.d("CUSTOMADDRESS", getLocality());
-		if (getLongitude() != 0)
-			Log.d("CUSTOMADDRESS", Double.toString(getLongitude()));
-		if (getPhone() != null)
-			Log.d("CUSTOMADDRESS", getPhone());
-		if (getPostalCode() != null)
-			Log.d("CUSTOMADDRESS", getPostalCode());
-		if (getPremises() != null)
-			Log.d("CUSTOMADDRESS", getPremises());
-		if (getSubAdminArea() != null)
-			Log.d("CUSTOMADDRESS", getSubAdminArea());
-		if (getSubLocality() != null)
-			Log.d("CUSTOMADDRESS", getSubLocality());
-		if (getSubThoroughfare() != null)
-			Log.d("CUSTOMADDRESS", getSubThoroughfare());
-		if (getThoroughfare() != null)
-			Log.d("CUSTOMADDRESS", getThoroughfare());
-		if (getUrl() != null)
-			Log.d("CUSTOMADDRESS", getUrl());
-		
 	}
 	
 	@Override

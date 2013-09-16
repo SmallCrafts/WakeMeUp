@@ -3,8 +3,11 @@ package com.smallcrafts.wakemeup;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 
 import com.smallcrafts.wakemeup.R;
 import com.smallcrafts.wakemeup.R.layout;
@@ -15,6 +18,7 @@ import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -53,6 +57,7 @@ import com.google.android.gms.location.LocationClient;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.GoogleMap.OnMapLongClickListener;
+import com.google.android.gms.maps.GoogleMap.OnMarkerClickListener;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.UiSettings;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
@@ -67,14 +72,14 @@ public class LocationActivity extends Activity {
 	private static GoogleMap map;
 	private static UiSettings mSettings;
 	private static String[] RECENT = null;
-	private static ArrayList<String> SUGGESTIONS = null;
+	private static Map<String, LatLng> SUGGESTIONS = null;
 	private static CustomArrayAdapter<CustomAddress> adapter;
 	private static CustomAddress searchAddress;
 	private static CustomAddress destinationAddress;
 	private static Marker destinationMarker = null;
+	private static Marker recentClickedMarker = null;
 	private static String searchAddressText;
 	private static Location myLocation;
-	private static boolean ongoingGeolocation = false;
 	private static Button doneButton;
 	private static Vibrator vibrator;
 
@@ -93,21 +98,57 @@ public class LocationActivity extends Activity {
 			public void onMapLongClick(LatLng point) {
 				vibrator = (Vibrator) getSystemService(VIBRATOR_SERVICE);
 				vibrator.vibrate(100);
-				setMarker(point);	
+				setMarker(point);
+				
 			}
 			
 		});
 
+		map.setOnMarkerClickListener(new OnMarkerClickListener(){
+
+			@Override
+			public boolean onMarkerClick(Marker marker) {
+				// TODO Auto-generated method stub
+				
+//				Log.d("MARKERCLICK", "Lat:" + Double.toString(marker.getPosition().latitude) + "Lon: " + Double.toString(marker.getPosition().longitude));
+//				
+//				if (SUGGESTIONS.containsValue(marker.getPosition())){
+//					
+//					if (recentClickedMarker != null){
+//						setRecentMarker(recentClickedMarker.getPosition());
+//						recentClickedMarker.remove();
+//					}
+//
+//					marker.remove();
+//					setMarker(marker.getPosition());
+//					recentClickedMarker = destinationMarker;
+//					List<CustomAddress> destinations = geocoding(destinationMarker.getPosition().latitude, destinationMarker.getPosition().longitude);
+//					
+//					if (destinations != null){
+//						destinationMarker.setSnippet(destinations.get(0).toString());
+//						destinationAddress = destinations.get(0);
+//					}
+//				}
+
+				
+				return false;
+			}
+			
+		});
+		
 		myLocation = getCurrentLocation();
 		
 		if (myLocation != null){
 			Log.d("MYLOCATION", Double.toString(myLocation.getLatitude()) + " --- " + Double.toString(myLocation.getLongitude()));
 		}
 		
+		getRecent();
+		
 		// Center de camera to my location
 		map.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(myLocation.getLatitude(), myLocation.getLongitude()),30));
   	    // Zoom in, animating the camera.
 	    map.animateCamera(CameraUpdateFactory.zoomTo(10), 3000, null);
+	    
 		
 	    doneButton = (Button) findViewById(R.id.done_button);
 	    doneButton.setOnClickListener(new OnClickListener(){
@@ -119,12 +160,12 @@ public class LocationActivity extends Activity {
 					Intent i = new Intent();
 					i.putExtra(MainMenu.LOCATION_SEARCH_STRING, (Address)destinationAddress);
 					setResult(Activity.RESULT_OK, i);
+					setRecent(destinationAddress.getLatitude(), destinationAddress.getLongitude());
 					finish();
 				}		
 			}
 	    });
 	    
-	    SUGGESTIONS = new ArrayList<String>();
 		adapter = new CustomArrayAdapter<CustomAddress>(this, android.R.layout.simple_dropdown_item_1line);
 		adapter.setNotifyOnChange(true);
 		input = (AutoCompleteTextView) findViewById(R.id.input);
@@ -193,7 +234,6 @@ public class LocationActivity extends Activity {
 				text = input.getText().toString();
 				
 				if (s.length() > 1 && text.length() >= 3){
-					ongoingGeolocation = true;
 					Log.d("OTC","Conditions Met: " + s.toString() + " // Change: " + Integer.toString(start) + " // " + Integer.toString(before) + " // " + Integer.toString(count));
 					new AsyncTask<String, Void, List<CustomAddress>>(){
 
@@ -235,7 +275,6 @@ public class LocationActivity extends Activity {
 							} else{
 								Toast.makeText(getBaseContext(), "No Location found", Toast.LENGTH_SHORT).show();
 							}
-							ongoingGeolocation = false;
 						}
 						
 					}.execute(text);
@@ -281,6 +320,55 @@ public class LocationActivity extends Activity {
 		return super.onOptionsItemSelected(item);
 	}
 	
+	private Boolean setRecent(double lat, double lon){
+		SharedPreferences sharedPref = this.getSharedPreferences(getString(R.string.cpref), Context.MODE_PRIVATE);
+		SharedPreferences.Editor editor = sharedPref.edit();
+		Map<String, ?> recentMap = sharedPref.getAll();
+		Set<String> key = recentMap.keySet();
+		int index = 0;
+		
+		LatLng rec = new LatLng(lat, lon);
+		
+		if (SUGGESTIONS.containsValue(rec)){
+			for (String s: SUGGESTIONS.keySet()){
+				if (SUGGESTIONS.get(s).equals(rec)){
+					
+				}
+			}
+		} else {
+			index = SUGGESTIONS.size();
+			
+			for (int i = 0; i < index; i++ ){
+				// Move all the locations 1 position backwards on the list
+				editor.putLong("latitude" + Integer.toString(i+1), Double.doubleToLongBits(SUGGESTIONS.get("recent" + Integer.toString(i)).latitude));
+				editor.putLong("longitude" + Integer.toString(i+1), Double.doubleToLongBits(SUGGESTIONS.get("recent" + Integer.toString(i)).longitude));
+			}
+			
+			//Last location to recent list
+			editor.putLong("latitude0", Double.doubleToLongBits(lat));
+			editor.putLong("longitude0", Double.doubleToLongBits(lon));
+		}
+
+		Boolean bol = editor.commit();
+		return bol;
+	}
+	
+	private Boolean getRecent(){
+		SUGGESTIONS = new HashMap<String, LatLng>();
+		SharedPreferences sharedPref = this.getSharedPreferences(getString(R.string.cpref), Context.MODE_PRIVATE);
+		Set<String> key = sharedPref.getAll().keySet();
+		for (int i = 0; i < 5; i++){
+			if(key.contains("latitude" + Integer.toString(i))){
+				Log.d("LOCATION", "Recent #" + Integer.toString(i) + " : Latitude : " + Double.toString(Double.longBitsToDouble(sharedPref.getLong("latitude" + Integer.toString(i), 0))));
+				Log.d("LOCATION", "Recent #" + Integer.toString(i) + " : Longitude : " + Double.toString(Double.longBitsToDouble(sharedPref.getLong("longitude" + Integer.toString(i), 0))));
+				LatLng t = new LatLng(Double.longBitsToDouble(sharedPref.getLong("latitude" + Integer.toString(i), 0)),Double.longBitsToDouble(sharedPref.getLong("longitude" + Integer.toString(i), 0)));
+				SUGGESTIONS.put("recent" + Integer.toString(i), t);
+				setRecentMarker(t);
+			}
+		}
+		return true;
+	}
+	
 	private Marker setMarker(CustomAddress a){
 		if (destinationMarker != null){
 			destinationMarker.remove();
@@ -294,10 +382,25 @@ public class LocationActivity extends Activity {
 		return destinationMarker;
 	}
 	
+	private void setRecentMarker(LatLng l){
+		
+		Marker t = map.addMarker(new MarkerOptions()
+    	.position(l)
+    	.title("Yes! This is where I'm going!")
+    	.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE)));
+	
+		List<CustomAddress> destinations = geocoding(l.latitude, l.longitude);
+		
+		if (destinations != null){
+			t.setSnippet(destinations.get(0).toString());
+		}
+	}
+	
 	private Marker setMarker(LatLng l){
 		if (destinationMarker != null){
 			destinationMarker.remove();
 		}
+		
 		
 		destinationMarker = map.addMarker(new MarkerOptions()
         	.position(l)
