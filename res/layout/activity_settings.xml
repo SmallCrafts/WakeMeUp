@@ -1,0 +1,154 @@
+<ScrollView 
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"   
+    >
+
+<!-- If we remove the ScrollView, LinearLayout width and height must return to MATCH_PARENT -->    
+    
+<LinearLayout 
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:orientation="vertical"
+    android:paddingBottom="@dimen/activity_vertical_margin"
+    android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:paddingTop="@dimen/activity_vertical_margin"
+    tools:context=".SettingsActivity" >
+    
+    <TextView
+        android:textStyle="bold"
+        android:textSize="17sp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/distance_threshold"
+        android:layout_weight="1" />
+    
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/distance_threshold_text"
+        android:layout_weight="1"
+        android:layout_marginTop="5dp"
+        android:layout_marginLeft="2dp" />
+	<LinearLayout
+	    android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+	    android:orientation="horizontal"
+	    android:layout_weight="0"
+	    android:layout_marginTop="5dp"
+	    android:gravity="center" >
+	    
+	    <TextView
+	        android:id="@+id/distance_text"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+	        android:text="10" />
+	    
+	    <SeekBar
+	        android:id="@+id/distance_bar"
+	        android:layout_width="fill_parent"
+	        android:layout_height="wrap_content"
+	        android:layout_marginLeft="15dp" />
+	    
+	</LinearLayout>
+    
+    <TextView
+        android:textStyle="bold"
+        android:textSize="17sp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/notifications"
+        android:layout_marginTop="10dp"
+        android:layout_weight="1" />
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/notifications_explanation"
+        android:layout_marginTop="5dp"
+        android:layout_marginLeft="2dp"
+        android:layout_weight="1" />
+    
+	<Switch
+	    android:id="@+id/notify_vibrator"
+	    android:layout_width="wrap_content"
+	    android:layout_height="wrap_content"
+	    android:layout_gravity="right"
+	    android:text="@string/notify_vibrator_switch"
+	    android:layout_marginTop="5dp"
+	    android:layout_weight="0" />
+
+	<Switch
+        android:id="@+id/notify_sound"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="right"
+        android:text="@string/notify_sound_switch"
+        android:layout_marginTop="5dp"
+        android:layout_weight="0" />
+	
+    <TextView
+        android:textStyle="bold"
+        android:textSize="17sp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/save_last_trip"
+        android:layout_marginTop="10dp"
+        android:layout_weight="1" />
+
+	<Switch
+        android:id="@+id/save_last_trip"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="right"
+        android:text="@string/save_last_trip_switch"
+        android:layout_marginTop="5dp"
+        android:layout_weight="0" />
+
+    <TextView
+        android:textStyle="bold"
+        android:textSize="17sp"        
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/snooze"
+        android:layout_marginTop="10dp"
+        android:layout_weight="1" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/snooze_text"
+        android:layout_marginTop="5dp"
+        android:layout_marginLeft="2dp"
+        android:layout_weight="1" />    
+    
+	<Switch
+        android:id="@+id/snooze"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="right"
+        android:text="@string/snooze"
+        android:layout_marginTop="5dp"
+        android:layout_weight="0" />
+	
+	<TextView
+	    android:textStyle="bold"
+        android:textSize="17sp"     
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/units"
+        android:layout_marginTop="10dp"
+        android:layout_weight="1" />    
+    
+	<Switch
+        android:id="@+id/units"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="right"
+        android:text="@string/units_switch"
+        android:layout_marginTop="5dp"
+        android:layout_weight="0" />
+	
+</LinearLayout>
+</ScrollView>

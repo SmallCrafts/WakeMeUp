@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">WakeMeUp</string>
+    <string name="action_settings">Settings</string>
+    <string name="cpref">CPREFWMU</string>
+    <!-- MAIN MENU -->
+    <string name="location">Destination</string>
+    <string name="settings">Settings</string>
+    <string name="start">Start!</string>
+    <string name="mmdialogtitle">NO DESTINATION</string>
+    <string name="mmdialogmessage">Please, select a destination</string>
+    <string name="ok">Go</string>
+    <string name="cancel">Cancel</string>
+    <!-- LOCATION SEARCH -->
+    <string name="title_activity_location">LocationActivity</string>
+    <string name="inputhint">Insert the destination location</string>
+    <string name="done">Done</string>
+    <string name="title_activity_main">MainActivity</string>
+    <string name="hello_world">Hello world!</string>
+    <string name="title_activity_settings">SettingsActivity</string>
+    <!-- SETTINGS -->
+    <string name="save_last_trip_switch">Save Last Trip?</string>
+    <string name="notify_sound_switch">Notify With Sound</string>
+    <string name="notify_vibrator_switch">Notify With Vibrator</string>
+    <string name="distance_threshold">Distance Threshold</string>
+    <string name="distance_threshold_text">Set the distance to the destination in which you want to be notified (in Km)</string>
+    <string name="notifications">Notifications</string>
+    <string name="notifications_explanation">Select who would you like to be notified. OnScreen notification will always be active</string>
+    <string name="save_last_trip">Save The Last Trip</string>
+    <string name="snooze">Snooze</string>
+    <string name="snooze_text">Sleepy? We can try up to three times as you get closer to you destination</string>
+    <string name="units">Distance Units</string>
+    <string name="units_switch">Units</string>
+    <string name="kilometers">Km</string>
+    <string name="miles">Mi</string>
+    <!-- SERVICE -->
+    <string name="title_activity_service">ServiceActivity</string>
+    <string name="missing_distance">000</string>
+    <string name="current_units">Km</string>
+    <string name="dismiss">Dismiss</string>
+
+</resources>
