@@ -13,6 +13,7 @@ import android.widget.SeekBar;
 import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.Switch;
 import android.widget.TextView;
+import android.widget.Toast;
 import android.support.v4.app.NavUtils;
 
 public class SettingsActivity extends Activity {
@@ -69,6 +70,11 @@ public class SettingsActivity extends Activity {
 				SharedPreferences.Editor editor = sharedPref.edit();
 				editor.putFloat("distance", value);
 				Boolean bol = editor.commit();
+				
+				if (snoozeSwitch.isChecked() && seekBar.getProgress() < 2){
+					snoozeWarning();
+				}
+				
 				Log.d("DISTANCE", Double.toString(value) + " Commited? " + bol.toString());
 				
 			}
@@ -121,6 +127,10 @@ public class SettingsActivity extends Activity {
 				editor.putBoolean("snooze", s);
 				Boolean bol = editor.commit();
 				Log.d("SNOOZE", Boolean.toString(s) + " Commited? " + bol.toString());
+				
+				if (s && distanceBar.getProgress() < 2){
+					snoozeWarning();
+				}
 			}
 		});
 
@@ -141,7 +151,11 @@ public class SettingsActivity extends Activity {
 		restoreSettings();
 	}
 
-	public void restoreSettings(){
+	private void snoozeWarning(){
+		Toast.makeText(getBaseContext(), getResources().getString(R.string.snoozeWarning), Toast.LENGTH_LONG).show();
+	}
+	
+	private void restoreSettings(){
 		sharedPref = this.getSharedPreferences(getString(R.string.cpref), Context.MODE_PRIVATE);
 		float value = sharedPref.getFloat("distance", 5.0f);
 		if (value == 0.5f){

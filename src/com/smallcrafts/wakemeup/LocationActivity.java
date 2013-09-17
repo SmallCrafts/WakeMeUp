@@ -13,19 +13,16 @@ import com.smallcrafts.wakemeup.R;
 import com.smallcrafts.wakemeup.R.layout;
 import com.smallcrafts.wakemeup.R.menu;
 
-import android.R.color;
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Build;
 import android.os.Vibrator;
 import android.text.Editable;
-import android.text.Html;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -37,7 +34,6 @@ import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
-import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.TextView;
@@ -46,7 +42,6 @@ import android.location.Criteria;
 import android.location.Geocoder;
 import android.location.Address;
 import android.location.Location;
-import android.location.LocationListener;
 import android.location.LocationManager;
 
 import android.support.v4.app.NavUtils;
@@ -64,20 +59,18 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.android.maps.GeoPoint;
 
 public class LocationActivity extends Activity {
 
 	private static AutoCompleteTextView input;
 	private static GoogleMap map;
 	private static UiSettings mSettings;
-	private static String[] RECENT = null;
+	private static ArrayList<Marker> RECENT = null;
 	private static Map<String, LatLng> SUGGESTIONS = null;
 	private static CustomArrayAdapter<CustomAddress> adapter;
 	private static CustomAddress searchAddress;
 	private static CustomAddress destinationAddress;
 	private static Marker destinationMarker = null;
-	private static Marker recentClickedMarker = null;
 	private static String searchAddressText;
 	private static Location myLocation;
 	private static Button doneButton;
@@ -88,6 +81,8 @@ public class LocationActivity extends Activity {
 		
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_location);
+		
+		RECENT = new ArrayList<Marker>();
 		
 		Log.d("MAP", "Map created");
 		map = ((MapFragment) getFragmentManager().findFragmentById(R.id.map)).getMap();
@@ -110,28 +105,26 @@ public class LocationActivity extends Activity {
 			public boolean onMarkerClick(Marker marker) {
 				// TODO Auto-generated method stub
 				
-//				Log.d("MARKERCLICK", "Lat:" + Double.toString(marker.getPosition().latitude) + "Lon: " + Double.toString(marker.getPosition().longitude));
-//				
-//				if (SUGGESTIONS.containsValue(marker.getPosition())){
-//					
-//					if (recentClickedMarker != null){
-//						setRecentMarker(recentClickedMarker.getPosition());
-//						recentClickedMarker.remove();
+				// Check if the clicked marker is NOT the destinationMarker
+				if (!marker.equals(destinationMarker)){
+					LatLng tmp;
+//					int index = isRecentDestination();
+//					if (index >= 0){
+//						tmp = destinationMarker.getPosition();
+//						RECENT.remove(destinationMarker);
+//						setRecentMarker(tmp);
 //					}
-//
-//					marker.remove();
-//					setMarker(marker.getPosition());
-//					recentClickedMarker = destinationMarker;
-//					List<CustomAddress> destinations = geocoding(destinationMarker.getPosition().latitude, destinationMarker.getPosition().longitude);
-//					
-//					if (destinations != null){
-//						destinationMarker.setSnippet(destinations.get(0).toString());
-//						destinationAddress = destinations.get(0);
-//					}
-//				}
-
-				
-				return false;
+					
+					tmp = marker.getPosition();
+					setMarker(tmp);
+					marker.remove();
+					RECENT.remove(marker);
+					RECENT.add(destinationMarker);
+					
+					return true;
+				} else {
+					return false;
+				}
 			}
 			
 		});
@@ -147,7 +140,7 @@ public class LocationActivity extends Activity {
 		// Center de camera to my location
 		map.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(myLocation.getLatitude(), myLocation.getLongitude()),30));
   	    // Zoom in, animating the camera.
-	    map.animateCamera(CameraUpdateFactory.zoomTo(10), 3000, null);
+	    map.animateCamera(CameraUpdateFactory.zoomTo(10), 1500, null);
 	    
 		
 	    doneButton = (Button) findViewById(R.id.done_button);
@@ -320,6 +313,32 @@ public class LocationActivity extends Activity {
 		return super.onOptionsItemSelected(item);
 	}
 	
+	private int isRecentDestination(){
+
+		for (Marker m: RECENT){
+			if (m.equals(destinationMarker))
+				return RECENT.indexOf(m);
+		}
+		
+		return -1 ;
+	}
+	
+	private Marker closeMarkers(Marker ref){
+		Marker closest = null;
+		if (RECENT != null){
+			float distance = 500;
+			float[] results = {3};
+			for (Marker m: RECENT){
+				Location.distanceBetween(ref.getPosition().latitude, ref.getPosition().longitude, m.getPosition().latitude, m.getPosition().longitude, results);
+				if (results[0] < distance){
+					distance = results[0];
+					closest = m;
+				}
+			}
+		}
+		return closest;
+	}
+	
 	private Boolean setRecent(double lat, double lon){
 		SharedPreferences sharedPref = this.getSharedPreferences(getString(R.string.cpref), Context.MODE_PRIVATE);
 		SharedPreferences.Editor editor = sharedPref.edit();
@@ -369,20 +388,9 @@ public class LocationActivity extends Activity {
 		return true;
 	}
 	
-	private Marker setMarker(CustomAddress a){
-		if (destinationMarker != null){
-			destinationMarker.remove();
-		}
-		
-		destinationMarker = map.addMarker(new MarkerOptions()
-        	.position(new LatLng(a.getLatitude(), a.getLongitude()))
-        	.title("Yes! This is where I'm going!")
-        	.snippet(a.toString())
-        	.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)));
-		return destinationMarker;
-	}
+
 	
-	private void setRecentMarker(LatLng l){
+	private Marker setRecentMarker(LatLng l){
 		
 		Marker t = map.addMarker(new MarkerOptions()
     	.position(l)
@@ -394,14 +402,30 @@ public class LocationActivity extends Activity {
 		if (destinations != null){
 			t.setSnippet(destinations.get(0).toString());
 		}
+		RECENT.add(t);
+		return t;
+	}
+	
+	private Marker setMarker(CustomAddress a){
+		destinationMarker = setMarker(new LatLng(a.getLatitude(), a.getLongitude()));
+		destinationMarker.setSnippet(a.toString());
+		return destinationMarker;
 	}
 	
 	private Marker setMarker(LatLng l){
+		
 		if (destinationMarker != null){
 			destinationMarker.remove();
+			
+			LatLng tmp;
+			int index = isRecentDestination();
+			if (index >= 0){
+				tmp = destinationMarker.getPosition();
+				RECENT.remove(destinationMarker);
+				setRecentMarker(tmp);
+			}
 		}
-		
-		
+
 		destinationMarker = map.addMarker(new MarkerOptions()
         	.position(l)
         	.title("Yes! This is where I'm going!")
@@ -413,6 +437,9 @@ public class LocationActivity extends Activity {
 			destinationMarker.setSnippet(destinations.get(0).toString());
 			destinationAddress = destinations.get(0);
 		}
+		
+		destinationMarker.showInfoWindow();
+		
 		return destinationMarker;
 	}
 	
@@ -463,13 +490,6 @@ public class LocationActivity extends Activity {
 	
 	private Location getCurrentLocation(){
 		LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-//		LocationClient locationClient = new LocationClient(this,this,this);
-//		locationClient.connect();
-//		if (locationClient.isConnected()){
-//			return locationClient.getLastLocation();
-//		}
-//		else{
 			return locationManager.getLastKnownLocation(locationManager.getBestProvider(new Criteria(), true));
-//		}
 	}
 }

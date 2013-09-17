@@ -34,6 +34,7 @@
     <string name="units_switch">Units</string>
     <string name="kilometers">Km</string>
     <string name="miles">Mi</string>
+    <string name="snoozeWarning">Snooze option combined with small threshold distances can be annoying or little reliable!</string>
     <!-- SERVICE -->
     <string name="title_activity_service">ServiceActivity</string>
     <string name="missing_distance">000</string>

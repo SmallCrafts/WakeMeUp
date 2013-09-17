@@ -83,6 +83,7 @@ public class ServiceActivity extends Activity implements LocationListener {
 	private static Criteria criteria;
 	private static Ringtone notificationSound;
 	private static Vibrator notificationVibrator;
+	private static int snoozeCounter = 0;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -94,7 +95,6 @@ public class ServiceActivity extends Activity implements LocationListener {
 		Intent i = getIntent();
 		Address a = (Address) i.getParcelableArrayListExtra("com.smallcrafts.wakemeup.destination").get(0);
 		destinationAddress = new CustomAddress(a);
-		Log.d("SERVICE", "Destination Address: " + destinationAddress.toString());
 
 		final View controlsView = findViewById(R.id.fullscreen_content_controls);
 		final View contentView = findViewById(R.id.content);
@@ -190,6 +190,10 @@ public class ServiceActivity extends Activity implements LocationListener {
 			@Override
 			public void onClick(View arg0) {
 				stopNotifications();
+				if(snooze && snoozeCounter < 2){
+					snoozeCounter++;
+					thresholdDistance = (int) thresholdDistance/2;
+				}
 			}
 			
 		});
@@ -218,12 +222,11 @@ public class ServiceActivity extends Activity implements LocationListener {
 	}
 	
 	private void notifyArrival(){
-		Log.d("SERVICE","Notifications Launched. Location Updates removed.");
+		Log.d("SERVICE","Notifications Launched.");
 		
 		Uri notification = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM);
 		int ringDuration;
 		ringDuration = MediaPlayer.create(getApplicationContext(), notification).getDuration();
-		Log.d("SERVICE", "Current Ringtone Durantion: " + Integer.toString(ringDuration));
 		
 		long division = Math.round(ringDuration/8);
 		long[] pattern = {0, division * 7, division * 2};
@@ -381,7 +384,13 @@ public class ServiceActivity extends Activity implements LocationListener {
 		Log.d("SERVICE", "Comparable Distance: " + Float.toString(comparableDistance));
 		
 		if (comparableDistance < thresholdDistance){
-			locationManager.removeUpdates(this);
+			if (!snooze || (snoozeCounter > 1)){
+				Log.d("SERVICE", "Location Updates removed.");
+				locationManager.removeUpdates(this);
+			}
+			
+			Log.d("SERVICE","SnoozeCounter : " + Integer.toString(snoozeCounter));
+			Log.d("SERVICE","Current ThresholdDistance: " + Integer.toString(thresholdDistance));
 			notifyArrival();
 		}
 	}

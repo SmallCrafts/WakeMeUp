@@ -14,22 +14,12 @@ public class CustomAddress extends Address{
 	public CustomAddress(Address a){
 		super(a.getLocale());
 		
-		Log.d("CUSTOMADDRESS", "Address Start----------------------------------");
-		
-		int maxLines = a.getMaxAddressLineIndex();
 		if (a.getAddressLine(0) != null)
 			this.setAddressLine(0, a.getAddressLine(0));
 		if (a.getAddressLine(1) != null)
 			this.setAddressLine(1, a.getAddressLine(1));
 		if (a.getAddressLine(2) != null)
 			this.setAddressLine(2, a.getAddressLine(2));
-		
-		maxLines = this.getMaxAddressLineIndex();
-		
-		for (int i = 0; i < maxLines; i++){
-			Log.d("CUSTOMADDRESS", "AddressLine " + Integer.toString(i) + " : " + getAddressLine(i));
-		}
-		
 		
 		this.setAdminArea(a.getAdminArea());
 		this.setCountryCode(a.getCountryCode());
