@@ -31,7 +31,7 @@
         android:label="@string/app_name"
         android:theme="@style/AppTheme" >
         <uses-library android:name="com.google.android.maps" />
-
+        
         <activity
             android:name="com.smallcrafts.wakemeup.MainMenu"
             android:label="@string/app_name" >
@@ -72,6 +72,10 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.smallcrafts.wakemeup.MainMenu" />
         </activity>
+                
+        <service
+            android:name=".LocationDaemon"
+            android:enabled="true" >
+        </service>
     </application>
-
 </manifest>

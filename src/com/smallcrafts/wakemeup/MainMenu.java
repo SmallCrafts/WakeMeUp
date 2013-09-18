@@ -77,9 +77,7 @@ public class MainMenu extends Activity {
 	private void launchService(){
 		if (destinationAddress != null){
 			Intent serviceIntent = new Intent(MainMenu.this, ServiceActivity.class);
-			ArrayList<Address> extra = new ArrayList<Address>();
-			extra.add((Address)destinationAddress);
-			serviceIntent.putParcelableArrayListExtra("com.smallcrafts.wakemeup.destination", extra);
+			serviceIntent.putExtra("com.smallcrafts.wakemeup.destination", (Address)destinationAddress);
 			startActivity(serviceIntent);	
 		} else {
 			launchDialog();

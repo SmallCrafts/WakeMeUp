@@ -327,7 +327,7 @@ public class LocationActivity extends Activity {
 		Marker closest = null;
 		if (RECENT != null){
 			float distance = 500;
-			float[] results = {3};
+			float[] results = new float[1];
 			for (Marker m: RECENT){
 				Location.distanceBetween(ref.getPosition().latitude, ref.getPosition().longitude, m.getPosition().latitude, m.getPosition().longitude, results);
 				if (results[0] < distance){
