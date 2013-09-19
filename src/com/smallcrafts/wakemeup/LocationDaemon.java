@@ -81,6 +81,7 @@ public class LocationDaemon extends Service implements LocationListener {
 	@Override
 	public void onDestroy(){
 		super.onDestroy();
+		Log.d("DAEMON", "Service stopped!");
 		locationManager.removeUpdates(this);
 	}
 
@@ -113,8 +114,10 @@ public class LocationDaemon extends Service implements LocationListener {
 		
 		Log.d("DAEMON", "Unit Distance: " + Long.toString(unitDistance));
 		Log.d("DAEMON", "Last Distance: " + Long.toString(lastDistance));
+		Log.d("DAEMON", "ServiceActivity status: " + Boolean.toString(ServiceActivity.isRunning()));
+		Log.d("DAEMON", "AlarmActivity status: " + Boolean.toString(AlarmActivity.isRunning()));
 		
-		if (lastDistance != unitDistance){
+		if ((lastDistance != unitDistance) && !ServiceActivity.isRunning() && !AlarmActivity.isRunning()){
 			Log.d("DAEMON", "Notification Updated ...");
 			lastDistance = unitDistance;
 			String message = Long.toString(unitDistance) + " " + unitText + " left to get there.";

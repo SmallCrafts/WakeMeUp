@@ -31,6 +31,12 @@ public class MainMenu extends Activity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_mainmenu);
 		
+		//TODO
+		// Current behaviour is to stop the alarm when going back to the Home
+		// According to this, the service is stopped at this point.
+		// This could change
+		stopService(new Intent(MainMenu.this, LocationDaemon.class));
+		
 		locationButton = (Button) findViewById(R.id.location);
 		locationButton.setOnClickListener(new OnClickListener(){
 

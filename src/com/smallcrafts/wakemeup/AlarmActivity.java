@@ -84,7 +84,7 @@ public class AlarmActivity extends Activity {
 			public void onClick(View arg0) {
 				// TODO Auto-generated method stub
 				stopService(new Intent(AlarmActivity.this, LocationDaemon.class));
-				notificationManager.cancel(ServiceActivity.NOTIFICATIONID);
+//				notificationManager.cancel(ServiceActivity.NOTIFICATIONID);
 				stopNotifications();
 				Log.d("DAEMON", "Dismissed. Location Updates removed.");
 				finish();
@@ -112,6 +112,7 @@ public class AlarmActivity extends Activity {
 	protected void onResume(){
 		super.onResume();
 		activityStatus = true;
+		notificationManager.cancel(ServiceActivity.NOTIFICATIONID);
 	}
 	
 	@Override

@@ -97,6 +97,7 @@ public class ServiceActivity extends Activity {
 	public static final int NOTIFICATIONID = 110101001;
 	private static BroadcastReceiver breceiver;
 	private static double[] latlng = new double[2];
+	private static boolean activityStatus = false;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -271,6 +272,7 @@ public class ServiceActivity extends Activity {
 	@Override
 	protected void onResume(){
 		super.onResume();
+		activityStatus = true;
 		notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 		removeOSNotification();
 	}
@@ -278,9 +280,18 @@ public class ServiceActivity extends Activity {
 	@Override
 	protected void onPause(){
 		super.onPause();
-		launchOSNotification();
+		activityStatus = false;
+		Log.d("SERVICE", "Activity goes into PAUSED status.");
 	}
-
+	
+	@Override
+	public void onUserLeaveHint(){
+		super.onUserLeaveHint();
+		activityStatus = false;
+		launchOSNotification();
+		Log.d("SERVICE", "User leaves the app (on Background).");
+	} 
+	
 //	private void stopNotifications(){
 //		Log.d("SERVICE", "Stopping all non screen notifications");
 //		if (notificationSound != null){
@@ -423,7 +434,11 @@ public class ServiceActivity extends Activity {
 			getActionBar().setDisplayHomeAsUpEnabled(true);
 		}
 	}
-
+	
+	public static boolean isRunning() {
+	    return activityStatus;
+	}
+	
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
