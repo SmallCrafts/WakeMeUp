@@ -79,6 +79,7 @@ public class ServiceActivity extends Activity {
 	private static int thresholdDistance;
 	private static float distance = 0;
 	private static float initialDistance = 0;
+	private static String textUnits = "Km";
 	private static boolean vibrator;
 	private static boolean sound;
 	private static boolean snooze;
@@ -89,12 +90,11 @@ public class ServiceActivity extends Activity {
 	private static TextView locationText;
 	private static Button dismissButton;
 	private static LocationManager locationManager;
-	private static Criteria criteria;
 	private static Ringtone notificationSound;
 	private static Vibrator notificationVibrator;
 	private static NotificationManager notificationManager;
 	private static int snoozeCounter = 0;
-	private static final int NOTIFICATIONID = 110101001;
+	public static final int NOTIFICATIONID = 110101001;
 	private static BroadcastReceiver breceiver;
 	private static double[] latlng = new double[2];
 
@@ -105,6 +105,13 @@ public class ServiceActivity extends Activity {
 		setContentView(R.layout.activity_service);
 		setupActionBar();
 		
+		myLocation = getCurrentLocation();
+		restoreSettings();
+		
+		if (units){
+			textUnits = getString(R.string.miles);
+		}
+		
 		Intent i = getIntent();
 		Address a = (Address) i.getParcelableExtra("com.smallcrafts.wakemeup.destination");
 		if (a != null){
@@ -112,6 +119,10 @@ public class ServiceActivity extends Activity {
 			Log.d("DAEMON", "Destination Address: " + destinationAddress.toString());
 		}
 		
+		//Start service
+		Intent daemonIntent = new Intent(ServiceActivity.this, LocationDaemon.class);
+		daemonIntent.putExtra("com.smallcrafts.wakemeup.destination", (Address)destinationAddress);
+		startService(daemonIntent);
 		
 		// LocationDaemon update receiver
 		breceiver = new BroadcastReceiver() {
@@ -119,10 +130,11 @@ public class ServiceActivity extends Activity {
 			public void onReceive(Context ctx, Intent intent) {
 			    // Extract data included in the Intent
 				latlng = intent.getDoubleArrayExtra("LatLng");
+				distance = intent.getFloatExtra("Distance", 0);
 				Log.d("SERVICE", "Location Update. Latitude: "+ Double.toString(latlng[0]) + " - Longitude: " + Double.toString(latlng[1]));
 				Log.d("SERVICE", "Current Distance: " + Float.toString(distance));
 				Log.d("SERVICE", "Thershold: " + Integer.toString(thresholdDistance));
-				calculateDistance();
+//				calculateDistance();
 				updateUI();
 				
 				//TODO Algorithm for minimizing location access
@@ -140,27 +152,21 @@ public class ServiceActivity extends Activity {
 				if (comparableDistance < thresholdDistance){
 					if (!snooze || (snoozeCounter > 1)){
 						Log.d("SERVICE", "Location Updates removed.");
-//						locationManager.removeUpdates(this);
 						stopService(new Intent(ServiceActivity.this, LocationDaemon.class));
 						
 					}
 					
 					Log.d("SERVICE","SnoozeCounter : " + Integer.toString(snoozeCounter));
 					Log.d("SERVICE","Current ThresholdDistance: " + Integer.toString(thresholdDistance));
-					notifyArrival();
+					
+					// TEST ON DAEMON + ALARM ARCHITECTURE
+					//notifyArrival();
 				}
-				
-				
 			}
 		};
 		
 		LocalBroadcastManager.getInstance(this).registerReceiver(breceiver,
 				new IntentFilter("com.smallcrafts.wakemeup.update"));
-		
-		//Start service
-		Intent daemonIntent = new Intent(ServiceActivity.this, LocationDaemon.class);
-		daemonIntent.putExtra("com.smallcrafts.wakemeup.destination", (Address)destinationAddress);
-		startService(daemonIntent);
 		
 		final View controlsView = findViewById(R.id.fullscreen_content_controls);
 		final View contentView = findViewById(R.id.content);
@@ -169,23 +175,10 @@ public class ServiceActivity extends Activity {
 		locationText = (TextView) findViewById(R.id.location_text);
 		
 		locationText.setText(destinationAddress.toString());
-
-		myLocation = getCurrentLocation();
 		
-		restoreSettings();
 		calculateDistance();
 		initialDistance = distance;
 		updateUI();
-		
-//		locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-//	    criteria = new Criteria();
-//	    criteria.setAccuracy(Criteria.ACCURACY_COARSE);
-//	    criteria.setAltitudeRequired(false);
-//	    criteria.setBearingRequired(false);
-//	    criteria.setCostAllowed(false);
-//	    criteria.setSpeedRequired(false);
-//	    criteria.setPowerRequirement(Criteria.POWER_LOW);
-//		locationManager.requestLocationUpdates(locationManager.getBestProvider(criteria, true), 5, 0, this);
 
 		// Set up an instance of SystemUiHider to control the system UI for
 		// this activity.
@@ -255,11 +248,11 @@ public class ServiceActivity extends Activity {
 
 			@Override
 			public void onClick(View arg0) {
-				stopNotifications();
-				if(snooze && snoozeCounter < 2){
-					snoozeCounter++;
-					thresholdDistance = (int) thresholdDistance/2;
-				}
+//				stopNotifications();
+//				if(snooze && snoozeCounter < 2){
+//					snoozeCounter++;
+//					thresholdDistance = (int) thresholdDistance/2;
+//				}
 			}
 			
 		});
@@ -287,70 +280,41 @@ public class ServiceActivity extends Activity {
 		super.onPause();
 		launchOSNotification();
 	}
-	
-	private void screenNotification(){
-		NotificationCompat.Builder notificationBuilder =
-				new NotificationCompat.Builder(this)
-				.setSmallIcon(R.drawable.ic_launcher)
-		        .setContentTitle("Distance To Destination")
-		        .setContentText("N Km/Mi to your destination");
-		
-		Intent resultIntent = new Intent(this, ServiceActivity.class);
-		resultIntent.putExtra("com.smallcrafts.wakemeup.destination", (Address)destinationAddress);
-		
-		TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
-		stackBuilder.addParentStack(ServiceActivity.class);
-		stackBuilder.addNextIntent(resultIntent);
-		
-		PendingIntent resultPendingIntent =
-		        stackBuilder.getPendingIntent(
-		            0,
-		            PendingIntent.FLAG_UPDATE_CURRENT
-		        );
-		notificationBuilder.setContentIntent(resultPendingIntent);
-		NotificationManager mNotificationManager =
-		    (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-		// mId allows you to update the notification later on.
-		mNotificationManager.notify(NOTIFICATIONID, notificationBuilder.build());
-		
-	}
 
-	private void stopNotifications(){
-		Log.d("SERVICE", "Stopping all non screen notifications");
-		if (notificationSound != null){
-			notificationSound.stop();
-			notificationSound = null;
-		}
-		if (notificationVibrator != null){
-			notificationVibrator.cancel();
-			notificationVibrator = null;
-		}
-	}
+//	private void stopNotifications(){
+//		Log.d("SERVICE", "Stopping all non screen notifications");
+//		if (notificationSound != null){
+//			notificationSound.stop();
+//			notificationSound = null;
+//		}
+//		if (notificationVibrator != null){
+//			notificationVibrator.cancel();
+//			notificationVibrator = null;
+//		}
+//	}
 	
-	private void notifyArrival(){
-		
-//		screenNotification();
-		Log.d("SERVICE","Notifications Launched.");
-		
-		Uri notification = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM);
-		int ringDuration;
-		ringDuration = MediaPlayer.create(getApplicationContext(), notification).getDuration();
-		
-		long division = Math.round(ringDuration/8);
-		long[] pattern = {0, division * 7, division * 2};
-		
-		if (notificationSound == null && sound){
-			notificationSound = RingtoneManager.getRingtone(getApplicationContext(), notification);
-			notificationSound.play();
-		}
-		
-		if (notificationVibrator == null && vibrator){
-			notificationVibrator = (Vibrator) getSystemService(VIBRATOR_SERVICE);
-			if (notificationVibrator.hasVibrator())
-				notificationVibrator.vibrate(pattern, 0);
-		}
-		mSystemUiHider.show();
-	}
+//	private void notifyArrival(){
+//		Log.d("SERVICE","Non Screen Notifications Launched.");
+//		
+//		Uri notification = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM);
+//		int ringDuration;
+//		ringDuration = MediaPlayer.create(getApplicationContext(), notification).getDuration();
+//		
+//		long division = Math.round(ringDuration/8);
+//		long[] pattern = {0, division * 7, division * 2};
+//		
+//		if (notificationSound == null && sound){
+//			notificationSound = RingtoneManager.getRingtone(getApplicationContext(), notification);
+//			notificationSound.play();
+//		}
+//		
+//		if (notificationVibrator == null && vibrator){
+//			notificationVibrator = (Vibrator) getSystemService(VIBRATOR_SERVICE);
+//			if (notificationVibrator.hasVibrator())
+//				notificationVibrator.vibrate(pattern, 0);
+//		}
+//		mSystemUiHider.show();
+//	}
 	
 	private void updateUI(){
 		if (units){
@@ -359,25 +323,25 @@ public class ServiceActivity extends Activity {
 			unitText.setText(getString(R.string.kilometers));
 		}
 		
-		long result = 0;
+		long printableDistance = 0;
 		
 		if(distance != 0){
 			if (units){
-				result = Math.round((distance/1000)*0.621371);
+				printableDistance = Math.round((distance/1000)*0.621371);
 			} else {
-				result = Math.round(distance/1000);
+				printableDistance = Math.round(distance/1000);
 			}
 		}
 		
-		if (result > 9999){
+		if (printableDistance > 9999){
 			distanceText.setTextSize(100);
-		} else if (result > 999){
+		} else if (printableDistance > 999){
 			distanceText.setTextSize(125);
 		} else {
 			distanceText.setTextSize(150);
 		}
 		
-		distanceText.setText(Long.toString(result));
+		distanceText.setText(Long.toString(printableDistance));
 		Log.d("SERVICE", "UI Updated");
 		
 	}
@@ -409,11 +373,22 @@ public class ServiceActivity extends Activity {
 		return locationManager.getLastKnownLocation(locationManager.getBestProvider(new Criteria(), true));
 	}
 	
-	private void launchOSNotification(){
+	public void launchOSNotification(){
+		long unitDistance = 0;
+		if(distance != 0){
+			if (units){
+				unitDistance = Math.round((distance/1000)*0.621371);
+			} else {
+				unitDistance = Math.round(distance/1000);
+			}
+		}
+		
+		String message = Long.toString(unitDistance) + " " + textUnits + " left to get there.";
+		
 		NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this)
 	    .setSmallIcon(R.drawable.ic_launcher)
 	    .setContentTitle("On our Way!")
-	    .setContentText("N Units left to get there.")
+	    .setContentText(message)
 	    .setOngoing(true);
 		
 		Intent resultIntent = new Intent(this, ServiceActivity.class);
@@ -432,7 +407,6 @@ public class ServiceActivity extends Activity {
 		
 		
 		notificationManager.notify(NOTIFICATIONID, notificationBuilder.build());
-		
 	}
 	
 	private void removeOSNotification(){
@@ -500,51 +474,4 @@ public class ServiceActivity extends Activity {
 		mHideHandler.removeCallbacks(mHideRunnable);
 		mHideHandler.postDelayed(mHideRunnable, delayMillis);
 	}
-
-//	@Override
-//	public void onLocationChanged(Location l) {
-////		Log.d("SERVICE", "Location Update: " + Double.toString(l.getLatitude()) + " - " + Double.toString(l.getLongitude()));
-////		Log.d("SERVICE", "Current Distance: " + Float.toString(distance));
-////		Log.d("SERVICE", "Thershold: " + Integer.toString(thresholdDistance));
-////		calculateDistance();
-////		updateUI();
-////		
-////		//TODO Algorithm for minimizing location access
-////		
-////		float comparableDistance;
-////		
-////		if (units){
-////			comparableDistance = (float) ((float) distance*0.621371);
-////		} else {
-////			comparableDistance = distance;
-////		}
-////		
-////		Log.d("SERVICE", "Comparable Distance: " + Float.toString(comparableDistance));
-////		
-////		if (comparableDistance < thresholdDistance){
-////			if (!snooze || (snoozeCounter > 1)){
-////				Log.d("SERVICE", "Location Updates removed.");
-////				locationManager.removeUpdates(this);
-////			}
-////			
-////			Log.d("SERVICE","SnoozeCounter : " + Integer.toString(snoozeCounter));
-////			Log.d("SERVICE","Current ThresholdDistance: " + Integer.toString(thresholdDistance));
-////			notifyArrival();
-////		}
-//	}
-//
-//	@Override
-//	public void onProviderDisabled(String provider) {
-//		
-//	}
-//
-//	@Override
-//	public void onProviderEnabled(String provider) {
-//		
-//	}
-//
-//	@Override
-//	public void onStatusChanged(String provider, int status, Bundle extras) {
-//		
-//	}
 }

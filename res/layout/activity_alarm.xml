@@ -1,0 +1,77 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#0099cc"
+    tools:context=".AlarmActivity" >
+
+	<LinearLayout
+	    android:orientation="vertical"
+	    android:layout_width="fill_parent"
+	    android:layout_height="wrap_content"
+	    android:gravity="center" >
+	    <LinearLayout
+		    android:orientation="horizontal"
+		    android:layout_width="fill_parent"
+		    android:layout_height="wrap_content"
+		    android:gravity="center" >
+		    <TextView
+		        android:id="@+id/alarm_distance_text"
+		        android:layout_width="wrap_content"
+		        android:layout_height="wrap_content"
+		        android:gravity="center"
+		        android:keepScreenOn="true"
+		        android:text="@string/missing_distance"
+		        android:textColor="#33b5e5"
+		        android:textSize="150sp"
+		        android:textStyle="bold" />
+			<TextView
+		        android:id="@+id/alarm_unit_text"
+		        android:layout_width="wrap_content"
+		        android:layout_height="wrap_content"
+		        android:gravity="center"
+		        android:keepScreenOn="true"
+		        android:text="@string/missing_distance"
+		        android:textColor="#33b5e5"
+		        android:textSize="20sp"
+		        android:textStyle="bold" />
+		</LinearLayout>
+		<TextView
+	        android:id="@+id/alarm_location_text"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+	        android:gravity="center"
+	        android:text="@string/missing_distance"
+	        android:textColor="#ccffff"
+	        android:textSize="15sp"
+	        android:textStyle="bold" />
+	</LinearLayout>
+
+	<LinearLayout
+	    android:layout_width="match_parent"
+	    android:layout_height="match_parent"
+	    android:gravity="bottom|center"
+	    android:orientation="horizontal" >
+
+   	    <Button
+   	        android:id="@+id/alarm_dismiss_button"
+   	        style="@style/ButtonBar"
+			android:background="@color/black_overlay"
+   	        android:layout_width="0dp"
+   	        android:layout_height="wrap_content"
+   	        android:layout_weight="1"
+   	        android:text="@string/dimissBig" />
+
+    	<Button
+    	    android:id="@+id/alarm_snooze_button"
+    	    style="@style/ButtonBar"
+			android:background="@color/black_overlay"
+    	    android:layout_width="0dp"
+    	    android:layout_height="wrap_content"
+    	    android:layout_weight="1"
+    	    android:text="@string/snoozeBig" />
+
+	</LinearLayout>
+
+</RelativeLayout>

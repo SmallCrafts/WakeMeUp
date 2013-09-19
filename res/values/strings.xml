@@ -40,5 +40,9 @@
     <string name="missing_distance">000</string>
     <string name="current_units">Km</string>
     <string name="dismiss">Dismiss</string>
+    <string name="title_activity_alarm">AlarmActivity</string>
+    <!-- ALARM -->
+    <string name="dimissBig">DISMISS</string>
+    <string name="snoozeBig">SNOOZE</string>
 
 </resources>
