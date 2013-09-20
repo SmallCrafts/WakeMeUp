@@ -70,6 +70,14 @@ public class MainMenu extends Activity {
 		});
 	}
 
+	@Override 
+	protected void onResume(){
+		super.onResume();
+		if (destinationAddress != null){
+			Log.d("MAINMENU", "Current Address: " + destinationAddress.toString());
+		}
+	}
+	
 	private void launchLocation(){
 		Intent locationIntent = new Intent(MainMenu.this, LocationActivity.class);
 		startActivityForResult(locationIntent, LOCATION_SEARCH_REQUEST);
@@ -130,7 +138,7 @@ public class MainMenu extends Activity {
 			case LOCATION_SEARCH_REQUEST : {
 				if (resultCode == Activity.RESULT_OK) {
 					destinationAddress = new CustomAddress((Address) data.getParcelableExtra(LOCATION_SEARCH_STRING));
-					Log.d("MENU_ACTIVITY", destinationAddress.toString());
+					Log.d("MAINMENU", destinationAddress.toString());
 				} 
 			break; 
 			} 
