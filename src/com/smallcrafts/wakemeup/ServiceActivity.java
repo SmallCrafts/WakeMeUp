@@ -132,37 +132,37 @@ public class ServiceActivity extends Activity {
 			    // Extract data included in the Intent
 				latlng = intent.getDoubleArrayExtra("LatLng");
 				distance = intent.getFloatExtra("Distance", 0);
-				Log.d("SERVICE", "Location Update. Latitude: "+ Double.toString(latlng[0]) + " - Longitude: " + Double.toString(latlng[1]));
-				Log.d("SERVICE", "Current Distance: " + Float.toString(distance));
-				Log.d("SERVICE", "Thershold: " + Integer.toString(thresholdDistance));
+//				Log.d("SERVICE", "Location Update. Latitude: "+ Double.toString(latlng[0]) + " - Longitude: " + Double.toString(latlng[1]));
+//				Log.d("SERVICE", "Current Distance: " + Float.toString(distance));
+//				Log.d("SERVICE", "Thershold: " + Integer.toString(thresholdDistance));
 //				calculateDistance();
 				updateUI();
 				
 				//TODO Algorithm for minimizing location access
 				
-				float comparableDistance;
-				
-				if (units){
-					comparableDistance = (float) ((float) distance*0.621371);
-				} else {
-					comparableDistance = distance;
-				}
-				
-				Log.d("SERVICE", "Comparable Distance: " + Float.toString(comparableDistance));
-				
-				if (comparableDistance < thresholdDistance){
-					if (!snooze || (snoozeCounter > 1)){
-						Log.d("SERVICE", "Location Updates removed.");
-						stopService(new Intent(ServiceActivity.this, LocationDaemon.class));
-						
-					}
-					
-					Log.d("SERVICE","SnoozeCounter : " + Integer.toString(snoozeCounter));
-					Log.d("SERVICE","Current ThresholdDistance: " + Integer.toString(thresholdDistance));
-					
-					// TEST ON DAEMON + ALARM ARCHITECTURE
-					//notifyArrival();
-				}
+//				float comparableDistance;
+//				
+//				if (units){
+//					comparableDistance = (float) ((float) distance*0.621371);
+//				} else {
+//					comparableDistance = distance;
+//				}
+//				
+//				Log.d("SERVICE", "Comparable Distance: " + Float.toString(comparableDistance));
+//				
+//				if (comparableDistance < thresholdDistance){
+//					if (!snooze || (snoozeCounter > 1)){
+//						Log.d("SERVICE", "Location Updates removed.");
+//						stopService(new Intent(ServiceActivity.this, LocationDaemon.class));
+//						
+//					}
+//					
+//					Log.d("SERVICE","SnoozeCounter : " + Integer.toString(snoozeCounter));
+//					Log.d("SERVICE","Current ThresholdDistance: " + Integer.toString(thresholdDistance));
+//					
+//					// TEST ON DAEMON + ALARM ARCHITECTURE
+//					//notifyArrival();
+//				}
 			}
 		};
 		
@@ -397,7 +397,7 @@ public class ServiceActivity extends Activity {
 		String message = Long.toString(unitDistance) + " " + textUnits + " left to get there.";
 		
 		NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this)
-	    .setSmallIcon(R.drawable.ic_launcher)
+	    .setSmallIcon(R.drawable.ic_stat_notify_wmu)
 	    .setContentTitle("On our Way!")
 	    .setContentText(message)
 	    .setOngoing(true);

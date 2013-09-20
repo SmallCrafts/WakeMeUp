@@ -71,10 +71,17 @@ public class LocationActivity extends Activity {
 	private static CustomAddress searchAddress;
 	private static CustomAddress destinationAddress;
 	private static Marker destinationMarker = null;
+	private static SharedPreferences sharedPref;
 	private static String searchAddressText;
 	private static Location myLocation;
 	private static Button doneButton;
 	private static Vibrator vibrator;
+	private static int thresholdDistance;
+	private static boolean saveLastTrip;
+	private static boolean vib;
+	private static boolean sound;
+	private static boolean snooze;
+	private static boolean units;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -82,6 +89,7 @@ public class LocationActivity extends Activity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_location);
 		
+		restoreSettings();
 		RECENT = new ArrayList<Marker>();
 		
 		Log.d("MAP", "Map created");
@@ -102,18 +110,11 @@ public class LocationActivity extends Activity {
 		map.setOnMarkerClickListener(new OnMarkerClickListener(){
 
 			@Override
-			public boolean onMarkerClick(Marker marker) {
-				// TODO Auto-generated method stub
-				
+			public boolean onMarkerClick(Marker marker) {				
+				map.animateCamera(CameraUpdateFactory.newLatLng(marker.getPosition()));
 				// Check if the clicked marker is NOT the destinationMarker
 				if (!marker.equals(destinationMarker)){
 					LatLng tmp;
-//					int index = isRecentDestination();
-//					if (index >= 0){
-//						tmp = destinationMarker.getPosition();
-//						RECENT.remove(destinationMarker);
-//						setRecentMarker(tmp);
-//					}
 					
 					tmp = marker.getPosition();
 					setMarker(tmp);
@@ -153,7 +154,12 @@ public class LocationActivity extends Activity {
 					Intent i = new Intent();
 					i.putExtra(MainMenu.LOCATION_SEARCH_STRING, (Address)destinationAddress);
 					setResult(Activity.RESULT_OK, i);
-					setRecent(destinationAddress.getLatitude(), destinationAddress.getLongitude());
+					
+					Log.d("LOCATION", "Save Last Trip : " + Boolean.toString(saveLastTrip));
+					
+					if (saveLastTrip){
+						setRecent(destinationAddress.getLatitude(), destinationAddress.getLongitude());
+					}
 					finish();
 				}		
 			}
@@ -200,7 +206,6 @@ public class LocationActivity extends Activity {
 		            	} else {
 		            		Toast.makeText(getBaseContext(), "No Location found", Toast.LENGTH_SHORT).show();
 		            	}
-		            	Log.d("SEARCH","Yeah, keep trying ... ");
 		            }
 		            
 		            return true;
@@ -491,5 +496,16 @@ public class LocationActivity extends Activity {
 	private Location getCurrentLocation(){
 		LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 			return locationManager.getLastKnownLocation(locationManager.getBestProvider(new Criteria(), true));
+	}
+	
+	private void restoreSettings(){
+		sharedPref = this.getSharedPreferences(getString(R.string.cpref), Context.MODE_PRIVATE);
+		thresholdDistance =(int)(sharedPref.getFloat("distance", 5)*1000.0);
+		Log.d("SERVICE", "Thershold: " + Integer.toString(thresholdDistance));
+		vib = sharedPref.getBoolean("vibrator", true);
+		sound = sharedPref.getBoolean("sound", true);
+		snooze = sharedPref.getBoolean("snooze", false);
+		units = sharedPref.getBoolean("units", true);
+		saveLastTrip = sharedPref.getBoolean("savetrip", false);
 	}
 }

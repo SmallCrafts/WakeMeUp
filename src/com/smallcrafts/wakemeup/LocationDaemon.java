@@ -123,7 +123,7 @@ public class LocationDaemon extends Service implements LocationListener {
 			String message = Long.toString(unitDistance) + " " + unitText + " left to get there.";
 			
 			NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this)
-		    .setSmallIcon(R.drawable.ic_launcher)
+		    .setSmallIcon(R.drawable.ic_stat_notify_wmu)
 		    .setContentTitle("On our Way!")
 		    .setContentText(message)
 		    .setOngoing(true);
@@ -168,7 +168,6 @@ public class LocationDaemon extends Service implements LocationListener {
 		com.putExtra("Distance", distance);
 		boolean status = LocalBroadcastManager.getInstance(getBaseContext()).sendBroadcast(com);
 		Log.d("DAEMON", "Location Update. Latitude: "+ Double.toString(latlng[0]) + " - Longitude: " + Double.toString(latlng[1]));
-		Log.d("DAEMON", "Broadcaste Status: " + Boolean.toString(status));
 		
 		//Check where if the alarm conditions are met
 		float comparableDistance;
