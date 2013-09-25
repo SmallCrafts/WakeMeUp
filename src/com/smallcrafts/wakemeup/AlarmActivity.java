@@ -38,7 +38,7 @@ public class AlarmActivity extends Activity {
 	private static boolean sound;
 	private static boolean snooze;
 	private static boolean units;
-	private static boolean activityStatus = false;
+	public static boolean alarmVisible = false;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -113,18 +113,14 @@ public class AlarmActivity extends Activity {
 	@Override
 	protected void onResume(){
 		super.onResume();
-		activityStatus = true;
+		alarmVisible = true;
 		notificationManager.cancel(ServiceActivity.NOTIFICATIONID);
 	}
 	
 	@Override
 	protected void onPause(){
 		super.onPause();
-		activityStatus = false;
-	}
-	
-	public static boolean isRunning() {
-	    return activityStatus;
+		alarmVisible = false;
 	}
 	
 	private void stopNotifications(){

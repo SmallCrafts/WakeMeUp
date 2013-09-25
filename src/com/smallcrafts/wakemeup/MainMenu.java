@@ -24,7 +24,9 @@ public class MainMenu extends Activity {
 	private boolean dialogResponse;
 	private CustomAddress destinationAddress;
 	private static final int LOCATION_SEARCH_REQUEST = 1;
+	static final String SAVED_DESTINATION = "savedDestination";
 	public static final String LOCATION_SEARCH_STRING = "com.smallcrafts.wakemeup.locationactivity.addressresult";
+	public static boolean mmenuVisible = false;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -35,18 +37,41 @@ public class MainMenu extends Activity {
 		// Current behaviour is to stop the alarm when going back to the Home
 		// According to this, the service is stopped at this point.
 		// This could change
-		stopService(new Intent(MainMenu.this, LocationDaemon.class));
+//		stopService(new Intent(MainMenu.this, LocationDaemon.class));
 		
 		locationButton = (Button) findViewById(R.id.location);
 		locationButton.setOnClickListener(new OnClickListener(){
-
 			@Override
 			public void onClick(View v) {
-				Log.d("MAINMENU","Almost there ... ");
-				launchLocation();
-				
+				if (LocationDaemon.isRunning() != null){
+					Log.d("MAINMENU","Service running!! Launch Warning.");
+					AlertDialog.Builder builder = new AlertDialog.Builder(MainMenu.this);
+					builder.setMessage(R.string.mmdialogmessage)
+				       .setTitle(R.string.mmdialogtitle);
+					builder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+				           public void onClick(DialogInterface dialog, int id) {
+				               // User clicked OK button
+								Log.d("MAINMENU","Current tracking dismissed. Launching LocationActivity.");
+								destinationAddress = null;
+								stopService(new Intent(MainMenu.this, LocationDaemon.class));
+								launchLocation();
+				           }
+				       });
+					builder.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+				           public void onClick(DialogInterface dialog, int id) {
+				               // User cancelled the dialog
+				           }
+				       });
+					
+					// Create the AlertDialog
+					AlertDialog dialog = builder.create();
+					dialog.show();
+
+				} else {
+					Log.d("MAINMENU","No service running. Launching LocationActivity.");
+					launchLocation();
+				}
 			}
-			
 		});
 		
 		settingsButton = (Button) findViewById(R.id.settings);
@@ -73,10 +98,36 @@ public class MainMenu extends Activity {
 	@Override 
 	protected void onResume(){
 		super.onResume();
+		mmenuVisible = true;
+		
+		if (LocationDaemon.isRunning() != null){
+			destinationAddress = LocationDaemon.isRunning();
+			startButton.setText("Watch!");
+		}
+		
 		if (destinationAddress != null){
 			Log.d("MAINMENU", "Current Address: " + destinationAddress.toString());
 		}
 	}
+	
+	@Override
+	public void onPause(){
+		super.onPause();
+		mmenuVisible = false;
+	}
+	
+	@Override
+	public void onStop(){
+		super.onStop();
+		Log.d("MAINMENU", "Activity goes into STOPPED status.");
+	}
+	
+	@Override
+	public void onDestroy(){
+		super.onDestroy();
+		Log.d("MAINMENU", "Activity goes into DESTROYED status ***** .");
+	}
+	
 	
 	private void launchLocation(){
 		Intent locationIntent = new Intent(MainMenu.this, LocationActivity.class);
@@ -94,12 +145,12 @@ public class MainMenu extends Activity {
 			serviceIntent.putExtra("com.smallcrafts.wakemeup.destination", (Address)destinationAddress);
 			startActivity(serviceIntent);	
 		} else {
-			launchDialog();
+			launchDialog("");
 		}
 	}
 	
 	
-	private boolean launchDialog(){
+	private boolean launchDialog(String d){
 		AlertDialog.Builder builder = new AlertDialog.Builder(this);
 		builder.setMessage(R.string.mmdialogmessage)
 	       .setTitle(R.string.mmdialogtitle);
@@ -145,4 +196,17 @@ public class MainMenu extends Activity {
 		} 
 	}
 	
+	@Override
+	public void onSaveInstanceState(Bundle sis){
+		Log.d("MAINMENU","InstaceState Saved");
+		sis.putParcelable(SAVED_DESTINATION, (Address)destinationAddress);
+		super.onSaveInstanceState(sis);
+	}
+	
+	@Override
+	public void onRestoreInstanceState(Bundle ris){
+		Log.d("MAINMENU","InstaceState Restored");
+		super.onRestoreInstanceState(ris);
+		destinationAddress = new CustomAddress((Address)ris.getParcelable(SAVED_DESTINATION));
+	}
 }

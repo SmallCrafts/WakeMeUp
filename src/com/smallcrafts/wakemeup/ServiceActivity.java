@@ -26,6 +26,7 @@ import android.view.MenuItem;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 import android.support.v4.app.NavUtils;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.TaskStackBuilder;
@@ -97,7 +98,7 @@ public class ServiceActivity extends Activity {
 	public static final int NOTIFICATIONID = 110101001;
 	private static BroadcastReceiver breceiver;
 	private static double[] latlng = new double[2];
-	private static boolean activityStatus = false;
+	public static boolean serviceVisible = false;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -132,37 +133,7 @@ public class ServiceActivity extends Activity {
 			    // Extract data included in the Intent
 				latlng = intent.getDoubleArrayExtra("LatLng");
 				distance = intent.getFloatExtra("Distance", 0);
-//				Log.d("SERVICE", "Location Update. Latitude: "+ Double.toString(latlng[0]) + " - Longitude: " + Double.toString(latlng[1]));
-//				Log.d("SERVICE", "Current Distance: " + Float.toString(distance));
-//				Log.d("SERVICE", "Thershold: " + Integer.toString(thresholdDistance));
-//				calculateDistance();
 				updateUI();
-				
-				//TODO Algorithm for minimizing location access
-				
-//				float comparableDistance;
-//				
-//				if (units){
-//					comparableDistance = (float) ((float) distance*0.621371);
-//				} else {
-//					comparableDistance = distance;
-//				}
-//				
-//				Log.d("SERVICE", "Comparable Distance: " + Float.toString(comparableDistance));
-//				
-//				if (comparableDistance < thresholdDistance){
-//					if (!snooze || (snoozeCounter > 1)){
-//						Log.d("SERVICE", "Location Updates removed.");
-//						stopService(new Intent(ServiceActivity.this, LocationDaemon.class));
-//						
-//					}
-//					
-//					Log.d("SERVICE","SnoozeCounter : " + Integer.toString(snoozeCounter));
-//					Log.d("SERVICE","Current ThresholdDistance: " + Integer.toString(thresholdDistance));
-//					
-//					// TEST ON DAEMON + ALARM ARCHITECTURE
-//					//notifyArrival();
-//				}
 			}
 		};
 		
@@ -272,7 +243,7 @@ public class ServiceActivity extends Activity {
 	@Override
 	protected void onResume(){
 		super.onResume();
-		activityStatus = true;
+		serviceVisible = true;
 		notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 		removeOSNotification();
 	}
@@ -280,52 +251,24 @@ public class ServiceActivity extends Activity {
 	@Override
 	protected void onPause(){
 		super.onPause();
-		activityStatus = false;
+		serviceVisible = false;
 		Log.d("SERVICE", "Activity goes into PAUSED status.");
+		Toast.makeText(getBaseContext(), getResources().getString(R.string.leaving_service_warning), Toast.LENGTH_SHORT).show();
 	}
 	
 	@Override
 	public void onUserLeaveHint(){
 		super.onUserLeaveHint();
-		activityStatus = false;
+		serviceVisible = false;
 		launchOSNotification();
 		Log.d("SERVICE", "User leaves the app (on Background).");
-	} 
+	}
 	
-//	private void stopNotifications(){
-//		Log.d("SERVICE", "Stopping all non screen notifications");
-//		if (notificationSound != null){
-//			notificationSound.stop();
-//			notificationSound = null;
-//		}
-//		if (notificationVibrator != null){
-//			notificationVibrator.cancel();
-//			notificationVibrator = null;
-//		}
-//	}
-	
-//	private void notifyArrival(){
-//		Log.d("SERVICE","Non Screen Notifications Launched.");
-//		
-//		Uri notification = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM);
-//		int ringDuration;
-//		ringDuration = MediaPlayer.create(getApplicationContext(), notification).getDuration();
-//		
-//		long division = Math.round(ringDuration/8);
-//		long[] pattern = {0, division * 7, division * 2};
-//		
-//		if (notificationSound == null && sound){
-//			notificationSound = RingtoneManager.getRingtone(getApplicationContext(), notification);
-//			notificationSound.play();
-//		}
-//		
-//		if (notificationVibrator == null && vibrator){
-//			notificationVibrator = (Vibrator) getSystemService(VIBRATOR_SERVICE);
-//			if (notificationVibrator.hasVibrator())
-//				notificationVibrator.vibrate(pattern, 0);
-//		}
-//		mSystemUiHider.show();
-//	}
+	@Override
+	public void onDestroy(){
+		super.onDestroy();
+		Log.d("SERVICE", "Activity goes into DESTROYED status.");
+	}
 	
 	private void updateUI(){
 		if (units){
@@ -433,10 +376,6 @@ public class ServiceActivity extends Activity {
 			// Show the Up button in the action bar.
 			getActionBar().setDisplayHomeAsUpEnabled(true);
 		}
-	}
-	
-	public static boolean isRunning() {
-	    return activityStatus;
 	}
 	
 	@Override

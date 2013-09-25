@@ -82,6 +82,7 @@ public class LocationActivity extends Activity {
 	private static boolean sound;
 	private static boolean snooze;
 	private static boolean units;
+	public static boolean locationVisible = false;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -284,6 +285,18 @@ public class LocationActivity extends Activity {
 		mSettings.setMyLocationButtonEnabled(true);
 	}
 
+	@Override
+	protected void onResume(){
+		super.onResume();
+		locationVisible = true;
+	}
+	
+	@Override
+	public void onPause(){
+		super.onPause();
+		locationVisible = false;
+	}
+	
 	/**
 	 * Set up the {@link android.app.ActionBar}, if the API is available.
 	 */

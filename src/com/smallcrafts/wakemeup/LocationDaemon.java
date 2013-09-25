@@ -39,6 +39,7 @@ public class LocationDaemon extends Service implements LocationListener {
 	private static boolean sound;
 	private static boolean snooze;
 	private static boolean units;
+	private static boolean status = false;
 	private static String unitText = "Km";
 	
 	@Override
@@ -65,6 +66,7 @@ public class LocationDaemon extends Service implements LocationListener {
 	    criteria.setSpeedRequired(false);
 	    criteria.setPowerRequirement(Criteria.POWER_LOW);
 		locationManager.requestLocationUpdates(locationManager.getBestProvider(criteria, true), 5, 0, this);
+		status = true;
 	}
 	
 	@Override
@@ -83,6 +85,7 @@ public class LocationDaemon extends Service implements LocationListener {
 		super.onDestroy();
 		Log.d("DAEMON", "Service stopped!");
 		locationManager.removeUpdates(this);
+		status = false;
 	}
 
 	private void launchAlarm(){
@@ -114,10 +117,10 @@ public class LocationDaemon extends Service implements LocationListener {
 		
 		Log.d("DAEMON", "Unit Distance: " + Long.toString(unitDistance));
 		Log.d("DAEMON", "Last Distance: " + Long.toString(lastDistance));
-		Log.d("DAEMON", "ServiceActivity status: " + Boolean.toString(ServiceActivity.isRunning()));
-		Log.d("DAEMON", "AlarmActivity status: " + Boolean.toString(AlarmActivity.isRunning()));
+		Log.d("DAEMON", "ServiceActivity status: " + Boolean.toString(isUiVisible()));
 		
-		if ((lastDistance != unitDistance) && !ServiceActivity.isRunning() && !AlarmActivity.isRunning()){
+//		if ((lastDistance != unitDistance) && !ServiceActivity.isUiVisible() && !AlarmActivity.isRunning()){
+		if ((lastDistance != unitDistance) && !isUiVisible()){	
 			Log.d("DAEMON", "Notification Updated ...");
 			lastDistance = unitDistance;
 			String message = Long.toString(unitDistance) + " " + unitText + " left to get there.";
@@ -156,6 +159,14 @@ public class LocationDaemon extends Service implements LocationListener {
 		units = sharedPref.getBoolean("units", true);
 	}
 	
+	public static CustomAddress isRunning(){
+		return destinationAddress;
+	}
+	
+	private boolean isUiVisible(){
+		return (MainMenu.mmenuVisible || LocationActivity.locationVisible || SettingsActivity.settingsVisible || ServiceActivity.serviceVisible || AlarmActivity.alarmVisible );
+	}
+	
 	@Override
 	public void onLocationChanged(Location location) {
 		// TODO Auto-generated method stub
@@ -180,7 +191,7 @@ public class LocationDaemon extends Service implements LocationListener {
 		
 		Log.d("SERVICE", "Comparable Distance: " + Float.toString(comparableDistance));
 		
-		if ((comparableDistance < thresholdDistance) && !AlarmActivity.isRunning()){
+		if ((comparableDistance < thresholdDistance) && !AlarmActivity.alarmVisible){
 			launchAlarm();
 			
 

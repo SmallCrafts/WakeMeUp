@@ -41,6 +41,7 @@
     <string name="current_units">Km</string>
     <string name="dismiss">Dismiss</string>
     <string name="title_activity_alarm">AlarmActivity</string>
+    <string name="leaving_service_warning">See you at your destination</string>
     <!-- ALARM -->
     <string name="dimissBig">DISMISS</string>
     <string name="snoozeBig">SNOOZE</string>

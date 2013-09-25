@@ -26,6 +26,7 @@ public class SettingsActivity extends Activity {
 	private static Switch unitsSwitch;
 	private static TextView textDistance;
 	private static SharedPreferences sharedPref;
+	public static boolean settingsVisible = false;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -149,6 +150,18 @@ public class SettingsActivity extends Activity {
 		});		
 		
 		restoreSettings();
+	}
+	
+	@Override
+	protected void onResume(){
+		super.onResume();
+		settingsVisible = true;
+	}
+	
+	@Override
+	public void onPause(){
+		super.onPause();
+		settingsVisible = false;
 	}
 
 	private void snoozeWarning(){
