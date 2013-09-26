@@ -8,6 +8,9 @@
     <string name="location">Destination</string>
     <string name="settings">Settings</string>
     <string name="start">Start!</string>
+    <string name="mmwarning">ALREADY RUNNING</string>
+    <string name="mmwarningmessage1">A tracking is already being performed to the following location:</string>
+    <string name="mmwarningmessage2">Would you like to choose a different location?</string>
     <string name="mmdialogtitle">NO DESTINATION</string>
     <string name="mmdialogmessage">Please, select a destination</string>
     <string name="ok">Go</string>
@@ -42,6 +45,7 @@
     <string name="dismiss">Dismiss</string>
     <string name="title_activity_alarm">AlarmActivity</string>
     <string name="leaving_service_warning">See you at your destination</string>
+    <string name="servicedimissed">Tracking has been disabled.</string>
     <!-- ALARM -->
     <string name="dimissBig">DISMISS</string>
     <string name="snoozeBig">SNOOZE</string>

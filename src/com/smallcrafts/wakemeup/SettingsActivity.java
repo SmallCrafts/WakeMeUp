@@ -156,14 +156,19 @@ public class SettingsActivity extends Activity {
 	protected void onResume(){
 		super.onResume();
 		settingsVisible = true;
+		if(LocationDaemon.isRunning() != null)
+			LocationDaemon.removeOSNotification();
 	}
 	
 	@Override
-	public void onPause(){
-		super.onPause();
+	public void onStop(){
+		super.onStop();
 		settingsVisible = false;
+		if(LocationDaemon.isRunning() != null)
+			LocationDaemon.launchOSNotification(this);
+		Log.d("SETTINGS", "Settings Activity Stopped ... ... ... ... ");
 	}
-
+	
 	private void snoozeWarning(){
 		Toast.makeText(getBaseContext(), getResources().getString(R.string.snoozeWarning), Toast.LENGTH_LONG).show();
 	}

@@ -118,7 +118,7 @@ public class ServiceActivity extends Activity {
 		Address a = (Address) i.getParcelableExtra("com.smallcrafts.wakemeup.destination");
 		if (a != null){
 			destinationAddress = new CustomAddress(a);
-			Log.d("DAEMON", "Destination Address: " + destinationAddress.toString());
+			Log.d("SERVICE", "Destination Address: " + destinationAddress.toString());
 		}
 		
 		//Start service
@@ -220,11 +220,9 @@ public class ServiceActivity extends Activity {
 
 			@Override
 			public void onClick(View arg0) {
-//				stopNotifications();
-//				if(snooze && snoozeCounter < 2){
-//					snoozeCounter++;
-//					thresholdDistance = (int) thresholdDistance/2;
-//				}
+				stopService(new Intent(ServiceActivity.this, LocationDaemon.class));
+				Toast.makeText(getBaseContext(), getResources().getString(R.string.servicedimissed), Toast.LENGTH_SHORT).show();
+				finish();
 			}
 			
 		});
@@ -244,8 +242,8 @@ public class ServiceActivity extends Activity {
 	protected void onResume(){
 		super.onResume();
 		serviceVisible = true;
-		notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-		removeOSNotification();
+		if(LocationDaemon.isRunning() != null)
+			LocationDaemon.removeOSNotification();
 	}
 	
 	@Override
@@ -257,17 +255,12 @@ public class ServiceActivity extends Activity {
 	}
 	
 	@Override
-	public void onUserLeaveHint(){
-		super.onUserLeaveHint();
+	public void onStop(){
+		super.onStop();
 		serviceVisible = false;
-		launchOSNotification();
-		Log.d("SERVICE", "User leaves the app (on Background).");
-	}
-	
-	@Override
-	public void onDestroy(){
-		super.onDestroy();
-		Log.d("SERVICE", "Activity goes into DESTROYED status.");
+		if(LocationDaemon.isRunning() != null)
+			LocationDaemon.launchOSNotification(this);
+		Log.d("SERVICE", "Service Activity Stopped ... ... ... ... ");
 	}
 	
 	private void updateUI(){
@@ -327,45 +320,45 @@ public class ServiceActivity extends Activity {
 		return locationManager.getLastKnownLocation(locationManager.getBestProvider(new Criteria(), true));
 	}
 	
-	public void launchOSNotification(){
-		long unitDistance = 0;
-		if(distance != 0){
-			if (units){
-				unitDistance = Math.round((distance/1000)*0.621371);
-			} else {
-				unitDistance = Math.round(distance/1000);
-			}
-		}
-		
-		String message = Long.toString(unitDistance) + " " + textUnits + " left to get there.";
-		
-		NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this)
-	    .setSmallIcon(R.drawable.ic_stat_notify_wmu)
-	    .setContentTitle("On our Way!")
-	    .setContentText(message)
-	    .setOngoing(true);
-		
-		Intent resultIntent = new Intent(this, ServiceActivity.class);
-		resultIntent.putExtra("com.smallcrafts.wakemeup.destination", (Address)destinationAddress);
-		
-		TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
-		stackBuilder.addParentStack(ServiceActivity.class);
-		stackBuilder.addNextIntent(resultIntent);
-		
-		PendingIntent resultPendingIntent =
-		        stackBuilder.getPendingIntent(
-		            0,
-		            PendingIntent.FLAG_UPDATE_CURRENT
-		        );
-		notificationBuilder.setContentIntent(resultPendingIntent);
-		
-		
-		notificationManager.notify(NOTIFICATIONID, notificationBuilder.build());
-	}
-	
-	private void removeOSNotification(){
-		notificationManager.cancel(NOTIFICATIONID);
-	}
+//	public void launchOSNotification(){
+//		long unitDistance = 0;
+//		if(distance != 0){
+//			if (units){
+//				unitDistance = Math.round((distance/1000)*0.621371);
+//			} else {
+//				unitDistance = Math.round(distance/1000);
+//			}
+//		}
+//		
+//		String message = Long.toString(unitDistance) + " " + textUnits + " left to get there.";
+//		
+//		NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this)
+//	    .setSmallIcon(R.drawable.ic_stat_notify_wmu)
+//	    .setContentTitle("On our Way!")
+//	    .setContentText(message)
+//	    .setOngoing(true);
+//		
+//		Intent resultIntent = new Intent(this, ServiceActivity.class);
+//		resultIntent.putExtra("com.smallcrafts.wakemeup.destination", (Address)destinationAddress);
+//		
+//		TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
+//		stackBuilder.addParentStack(ServiceActivity.class);
+//		stackBuilder.addNextIntent(resultIntent);
+//		
+//		PendingIntent resultPendingIntent =
+//		        stackBuilder.getPendingIntent(
+//		            0,
+//		            PendingIntent.FLAG_UPDATE_CURRENT
+//		        );
+//		notificationBuilder.setContentIntent(resultPendingIntent);
+//		
+//		
+//		notificationManager.notify(NOTIFICATIONID, notificationBuilder.build());
+//	}
+//	
+//	private void removeOSNotification(){
+//		notificationManager.cancel(NOTIFICATIONID);
+//	}
 	
 	/**
 	 * Set up the {@link android.app.ActionBar}, if the API is available.

@@ -16,6 +16,7 @@ import android.os.IBinder;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.TaskStackBuilder;
 import android.support.v4.content.LocalBroadcastManager;
+import android.text.Html;
 import android.util.Log;
 
 public class LocationDaemon extends Service implements LocationListener {
@@ -39,8 +40,8 @@ public class LocationDaemon extends Service implements LocationListener {
 	private static boolean sound;
 	private static boolean snooze;
 	private static boolean units;
-	private static boolean status = false;
 	private static String unitText = "Km";
+	public static final int NOTIFICATIONID = 110101001;
 	
 	@Override
 	public IBinder onBind(Intent arg0) {
@@ -66,7 +67,6 @@ public class LocationDaemon extends Service implements LocationListener {
 	    criteria.setSpeedRequired(false);
 	    criteria.setPowerRequirement(Criteria.POWER_LOW);
 		locationManager.requestLocationUpdates(locationManager.getBestProvider(criteria, true), 5, 0, this);
-		status = true;
 	}
 	
 	@Override
@@ -83,9 +83,9 @@ public class LocationDaemon extends Service implements LocationListener {
 	@Override
 	public void onDestroy(){
 		super.onDestroy();
-		Log.d("DAEMON", "Service stopped!");
+		destinationAddress = null;
 		locationManager.removeUpdates(this);
-		status = false;
+		Log.d("DAEMON", "Service stopped!");
 	}
 
 	private void launchAlarm(){
@@ -106,7 +106,15 @@ public class LocationDaemon extends Service implements LocationListener {
 		}
 	}
 	
-	private void checkNotification(){
+	private void checkNotification(boolean forced){
+		sharedPref = this.getSharedPreferences(getString(R.string.cpref), Context.MODE_PRIVATE);
+		units = sharedPref.getBoolean("units", true);
+		
+		if (units)
+			unitText = getString(R.string.miles);
+		else
+			unitText = getString(R.string.kilometers);
+		
 		if(distance != 0){
 			if (units){
 				unitDistance = Math.round((distance/1000)*0.621371);
@@ -117,42 +125,19 @@ public class LocationDaemon extends Service implements LocationListener {
 		
 		Log.d("DAEMON", "Unit Distance: " + Long.toString(unitDistance));
 		Log.d("DAEMON", "Last Distance: " + Long.toString(lastDistance));
-		Log.d("DAEMON", "ServiceActivity status: " + Boolean.toString(isUiVisible()));
+		Log.d("DAEMON", "UI Activity Status: " + Boolean.toString(isUiVisible()));
 		
-//		if ((lastDistance != unitDistance) && !ServiceActivity.isUiVisible() && !AlarmActivity.isRunning()){
-		if ((lastDistance != unitDistance) && !isUiVisible()){	
+		if (((lastDistance != unitDistance) || forced)  && !isUiVisible()){	
 			Log.d("DAEMON", "Notification Updated ...");
 			lastDistance = unitDistance;
-			String message = Long.toString(unitDistance) + " " + unitText + " left to get there.";
-			
-			NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this)
-		    .setSmallIcon(R.drawable.ic_stat_notify_wmu)
-		    .setContentTitle("On our Way!")
-		    .setContentText(message)
-		    .setOngoing(true);
-			
-			Intent resultIntent = new Intent(this, ServiceActivity.class);
-			resultIntent.putExtra("com.smallcrafts.wakemeup.destination", (Address)destinationAddress);
-			
-			TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
-			stackBuilder.addParentStack(ServiceActivity.class);
-			stackBuilder.addNextIntent(resultIntent);
-			
-			PendingIntent resultPendingIntent =
-			        stackBuilder.getPendingIntent(
-			            0,
-			            PendingIntent.FLAG_UPDATE_CURRENT
-			        );
-			notificationBuilder.setContentIntent(resultPendingIntent);
-			
-			notificationManager.notify(ServiceActivity.NOTIFICATIONID, notificationBuilder.build());
+			launchOSNotification(this);
 		}
 	}
 	
 	private void restoreSettings(){
 		sharedPref = this.getSharedPreferences(getString(R.string.cpref), Context.MODE_PRIVATE);
 		thresholdDistance =(int)(sharedPref.getFloat("distance", 5)*1000.0);
-		Log.d("SERVICE", "Thershold: " + Integer.toString(thresholdDistance));
+		Log.d("DAEMON", "Thershold: " + Integer.toString(thresholdDistance));
 		vibrator = sharedPref.getBoolean("vibrator", true);
 		sound = sharedPref.getBoolean("sound", true);
 		snooze = sharedPref.getBoolean("snooze", false);
@@ -163,7 +148,42 @@ public class LocationDaemon extends Service implements LocationListener {
 		return destinationAddress;
 	}
 	
-	private boolean isUiVisible(){
+	public static void removeOSNotification(){
+		notificationManager.cancel(NOTIFICATIONID);
+	}
+	
+	public static void launchOSNotification(Context context){
+		Log.d("DAEMON", "Forced Notification Update!!!");
+		if(!isUiVisible()){
+			NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(context)
+		    .setSmallIcon(R.drawable.ic_stat_notify_wmu)
+		    .setContentTitle("On our Way!")
+		    .setContentText(Long.toString(unitDistance) + " " + unitText + " left to get there.")
+		    .setOngoing(true);
+			
+			NotificationCompat.BigTextStyle bigTextStyle = new NotificationCompat.BigTextStyle();
+			bigTextStyle  = bigTextStyle.bigText(Html.fromHtml("<p>" + destinationAddress.toString() + "</p>" + Long.toString(unitDistance) + " " + unitText + " left to get there."));
+			notificationBuilder.setStyle(bigTextStyle);
+			
+			Intent resultIntent = new Intent(context, ServiceActivity.class);
+			resultIntent.putExtra("com.smallcrafts.wakemeup.destination", (Address)destinationAddress);
+			
+			TaskStackBuilder stackBuilder = TaskStackBuilder.create(context);
+			stackBuilder.addParentStack(ServiceActivity.class);
+			stackBuilder.addNextIntent(resultIntent);
+			
+			PendingIntent resultPendingIntent =
+			        stackBuilder.getPendingIntent(
+			            0,
+			            PendingIntent.FLAG_UPDATE_CURRENT
+			        );
+			notificationBuilder.setContentIntent(resultPendingIntent);
+			
+			notificationManager.notify(NOTIFICATIONID, notificationBuilder.build());
+		}
+	}
+	
+	private static boolean isUiVisible(){
 		return (MainMenu.mmenuVisible || LocationActivity.locationVisible || SettingsActivity.settingsVisible || ServiceActivity.serviceVisible || AlarmActivity.alarmVisible );
 	}
 	
@@ -171,7 +191,7 @@ public class LocationDaemon extends Service implements LocationListener {
 	public void onLocationChanged(Location location) {
 		// TODO Auto-generated method stub
 		calculateDistance(location);
-		checkNotification();
+		checkNotification(false);
 		latlng[0] = location.getLatitude();
 		latlng[1] = location.getLongitude();
 		com = new Intent("com.smallcrafts.wakemeup.update");
@@ -189,7 +209,7 @@ public class LocationDaemon extends Service implements LocationListener {
 			comparableDistance = distance;
 		}
 		
-		Log.d("SERVICE", "Comparable Distance: " + Float.toString(comparableDistance));
+		Log.d("DAEMON", "Comparable Distance: " + Float.toString(comparableDistance));
 		
 		if ((comparableDistance < thresholdDistance) && !AlarmActivity.alarmVisible){
 			launchAlarm();

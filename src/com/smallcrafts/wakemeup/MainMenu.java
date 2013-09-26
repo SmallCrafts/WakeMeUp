@@ -10,17 +10,20 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.text.Html;
 import android.util.Log;
 import android.view.Menu;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
+import android.widget.TextView;
 
 public class MainMenu extends Activity {
 
 	private Button locationButton;
 	private Button settingsButton;
 	private Button startButton;
+	private TextView activeLocation;
 	private boolean dialogResponse;
 	private CustomAddress destinationAddress;
 	private static final int LOCATION_SEARCH_REQUEST = 1;
@@ -33,12 +36,6 @@ public class MainMenu extends Activity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_mainmenu);
 		
-		//TODO
-		// Current behaviour is to stop the alarm when going back to the Home
-		// According to this, the service is stopped at this point.
-		// This could change
-//		stopService(new Intent(MainMenu.this, LocationDaemon.class));
-		
 		locationButton = (Button) findViewById(R.id.location);
 		locationButton.setOnClickListener(new OnClickListener(){
 			@Override
@@ -46,8 +43,8 @@ public class MainMenu extends Activity {
 				if (LocationDaemon.isRunning() != null){
 					Log.d("MAINMENU","Service running!! Launch Warning.");
 					AlertDialog.Builder builder = new AlertDialog.Builder(MainMenu.this);
-					builder.setMessage(R.string.mmdialogmessage)
-				       .setTitle(R.string.mmdialogtitle);
+					builder.setMessage(Html.fromHtml("<p align=center>"+ getString(R.string.mmwarningmessage1) + "</p><p align=center><b>" + destinationAddress.toString() + "</b></p><p align=center>"+ getString(R.string.mmwarningmessage2) + "</p>"))
+				       .setTitle(R.string.mmwarning);
 					builder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
 				           public void onClick(DialogInterface dialog, int id) {
 				               // User clicked OK button
@@ -93,6 +90,10 @@ public class MainMenu extends Activity {
 			}
 			
 		});
+		
+		activeLocation = (TextView) findViewById(R.id.active_location);
+		activeLocation.setVisibility(TextView.GONE);
+		
 	}
 
 	@Override 
@@ -101,12 +102,19 @@ public class MainMenu extends Activity {
 		mmenuVisible = true;
 		
 		if (LocationDaemon.isRunning() != null){
+			LocationDaemon.removeOSNotification();
 			destinationAddress = LocationDaemon.isRunning();
 			startButton.setText("Watch!");
+		} else {
+			startButton.setText("Go!");
 		}
 		
 		if (destinationAddress != null){
+			activeLocation.setText(destinationAddress.toString());
+			activeLocation.setVisibility(TextView.VISIBLE);
 			Log.d("MAINMENU", "Current Address: " + destinationAddress.toString());
+		} else {
+			activeLocation.setVisibility(TextView.GONE);
 		}
 	}
 	
@@ -119,15 +127,11 @@ public class MainMenu extends Activity {
 	@Override
 	public void onStop(){
 		super.onStop();
-		Log.d("MAINMENU", "Activity goes into STOPPED status.");
+		mmenuVisible = false;
+		if(LocationDaemon.isRunning() != null)
+			LocationDaemon.launchOSNotification(this);
+		Log.d("MAINMENU", "MainMenu Activity Stopped ... ... ... ... ");
 	}
-	
-	@Override
-	public void onDestroy(){
-		super.onDestroy();
-		Log.d("MAINMENU", "Activity goes into DESTROYED status ***** .");
-	}
-	
 	
 	private void launchLocation(){
 		Intent locationIntent = new Intent(MainMenu.this, LocationActivity.class);
@@ -145,33 +149,25 @@ public class MainMenu extends Activity {
 			serviceIntent.putExtra("com.smallcrafts.wakemeup.destination", (Address)destinationAddress);
 			startActivity(serviceIntent);	
 		} else {
-			launchDialog("");
+			AlertDialog.Builder builder = new AlertDialog.Builder(MainMenu.this);
+			builder.setMessage(R.string.mmdialogmessage)
+		       .setTitle(R.string.mmdialogtitle);
+			builder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+		           public void onClick(DialogInterface dialog, int id) {
+		               // User clicked OK button
+						launchLocation();
+		           }
+		       });
+			builder.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+		           public void onClick(DialogInterface dialog, int id) {
+		               // User cancelled the dialog
+		           }
+		       });
+			
+			// Create the AlertDialog
+			AlertDialog dialog = builder.create();
+			dialog.show();
 		}
-	}
-	
-	
-	private boolean launchDialog(String d){
-		AlertDialog.Builder builder = new AlertDialog.Builder(this);
-		builder.setMessage(R.string.mmdialogmessage)
-	       .setTitle(R.string.mmdialogtitle);
-		builder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
-	           public void onClick(DialogInterface dialog, int id) {
-	               // User clicked OK button
-	        	   dialogResponse = true;
-	           }
-	       });
-		builder.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
-	           public void onClick(DialogInterface dialog, int id) {
-	               // User cancelled the dialog
-	        	   dialogResponse = false;
-	           }
-	       });
-		
-		// Create the AlertDialog
-		AlertDialog dialog = builder.create();
-		dialog.show();
-		
-		return dialogResponse;
 	}
 	
 	@Override
