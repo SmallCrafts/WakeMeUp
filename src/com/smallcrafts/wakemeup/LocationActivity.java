@@ -135,14 +135,13 @@ public class LocationActivity extends Activity {
 		
 		if (myLocation != null){
 			Log.d("MYLOCATION", Double.toString(myLocation.getLatitude()) + " --- " + Double.toString(myLocation.getLongitude()));
+			// Center de camera to my location
+			map.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(myLocation.getLatitude(), myLocation.getLongitude()),30));
+	  	    // Zoom in, animating the camera.
+		    map.animateCamera(CameraUpdateFactory.zoomTo(10), 1500, null);
 		}
 		
 		getRecent();
-		
-		// Center de camera to my location
-		map.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(myLocation.getLatitude(), myLocation.getLongitude()),30));
-  	    // Zoom in, animating the camera.
-	    map.animateCamera(CameraUpdateFactory.zoomTo(10), 1500, null);
 	    
 		
 	    doneButton = (Button) findViewById(R.id.done_button);
@@ -310,8 +309,8 @@ public class LocationActivity extends Activity {
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		// Inflate the menu; this adds items to the action bar if it is present.
-		getMenuInflater().inflate(R.menu.location, menu);
-		return true;
+		//getMenuInflater().inflate(R.menu.location, menu);
+		return false;
 	}
 
 	@Override
@@ -508,7 +507,19 @@ public class LocationActivity extends Activity {
 	
 	private Location getCurrentLocation(){
 		LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-			return locationManager.getLastKnownLocation(locationManager.getBestProvider(new Criteria(), true));
+		
+		Log.d("LOCATION", "'Best' location provider" + locationManager.getBestProvider(new Criteria(), true));
+		Location bestLocation = locationManager.getLastKnownLocation(locationManager.getBestProvider(new Criteria(), true));
+		Location currentLocation = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+			
+		if (bestLocation != null){
+			Log.d("LOCATION", "'Best' location used. Provider: " + locationManager.getBestProvider(new Criteria(), true));
+			return bestLocation;
+		}
+		else{
+			Log.d("LOCATION", "Last Network Location used.");
+			return currentLocation;
+		}
 	}
 	
 	private void restoreSettings(){
