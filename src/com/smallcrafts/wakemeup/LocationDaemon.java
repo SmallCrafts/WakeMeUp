@@ -34,6 +34,8 @@ public class LocationDaemon extends Service implements LocationListener {
 	private static int thresholdDistance;
 	private static int snoozeCounter = 0;
 	private static float distance = 0;
+	private static float initialDistance = 0;
+	private static int locationUpdateRate = 5;
 	private static long unitDistance = 0;
 	private static long lastDistance = 0;
 	private static boolean vibrator;
@@ -66,7 +68,7 @@ public class LocationDaemon extends Service implements LocationListener {
 	    criteria.setCostAllowed(false);
 	    criteria.setSpeedRequired(false);
 	    criteria.setPowerRequirement(Criteria.POWER_LOW);
-		locationManager.requestLocationUpdates(locationManager.getBestProvider(criteria, true), 5, 0, this);
+		locationManager.requestLocationUpdates(locationManager.getBestProvider(criteria, true), locationUpdateRate, 0, this);
 	}
 	
 	@Override
@@ -95,11 +97,42 @@ public class LocationDaemon extends Service implements LocationListener {
 		startActivity(alarmIntent);	
 	}
 	
+	private void checkUpdateFrequency(){
+		int currentUpdateRate = locationUpdateRate;
+		
+		if (distance > initialDistance/2){
+			if (distance > ((3*initialDistance)/4)){
+				if(currentUpdateRate != 10){
+					currentUpdateRate = 10;
+				}
+			} else if (currentUpdateRate != 7){
+				currentUpdateRate = 7;
+			}
+		} else if (currentUpdateRate != 5){
+			currentUpdateRate = 5;
+		}
+		
+		updateLocationRequestFrecuency(currentUpdateRate);
+	}
+	
+	private void updateLocationRequestFrecuency (int f){
+		Log.d("DAEMON", "Current location update rate: " + Integer.toString(locationUpdateRate) + " min.");
+		Log.d("DAEMON", "NEW location update rate: " + Integer.toString(f) + " min.");
+		if (f != locationUpdateRate){
+			locationUpdateRate = f;
+			locationManager.removeUpdates(this);
+			locationManager.requestLocationUpdates(locationManager.getBestProvider(criteria, true), locationUpdateRate, 0, this);
+		}
+	}
+	
 	private void calculateDistance(Location l){
 		if (destinationAddress != null){
 			try{
 				Location.distanceBetween(l.getLatitude(), l.getLongitude(), destinationAddress.getLatitude(), destinationAddress.getLongitude(), results);
 				distance = results[0];
+				if (initialDistance  == 0){
+					initialDistance = distance;
+				}
 			} catch (IllegalArgumentException e) {
 				
 			}
@@ -189,15 +222,15 @@ public class LocationDaemon extends Service implements LocationListener {
 	
 	@Override
 	public void onLocationChanged(Location location) {
-		// TODO Auto-generated method stub
 		calculateDistance(location);
+		checkUpdateFrequency();
 		checkNotification(false);
 		latlng[0] = location.getLatitude();
 		latlng[1] = location.getLongitude();
 		com = new Intent("com.smallcrafts.wakemeup.update");
 		com.putExtra("LatLng", latlng);
 		com.putExtra("Distance", distance);
-		boolean status = LocalBroadcastManager.getInstance(getBaseContext()).sendBroadcast(com);
+		LocalBroadcastManager.getInstance(getBaseContext()).sendBroadcast(com);
 		Log.d("DAEMON", "Location Update. Latitude: "+ Double.toString(latlng[0]) + " - Longitude: " + Double.toString(latlng[1]));
 		
 		//Check where if the alarm conditions are met

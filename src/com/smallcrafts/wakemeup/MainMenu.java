@@ -1,15 +1,15 @@
 package com.smallcrafts.wakemeup;
 
-import java.util.ArrayList;
-
 import com.smallcrafts.wakemeup.R;
 
 import android.location.Address;
 import android.os.Bundle;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.text.Html;
 import android.util.Log;
 import android.view.Menu;
@@ -24,7 +24,6 @@ public class MainMenu extends Activity {
 	private Button settingsButton;
 	private Button startButton;
 	private TextView activeLocation;
-	private boolean dialogResponse;
 	private CustomAddress destinationAddress;
 	private static final int LOCATION_SEARCH_REQUEST = 1;
 	static final String SAVED_DESTINATION = "savedDestination";
@@ -35,6 +34,19 @@ public class MainMenu extends Activity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_mainmenu);
+		
+		SharedPreferences sharedPref = this.getSharedPreferences(getString(R.string.cpref), Context.MODE_PRIVATE);
+		if (sharedPref.getBoolean("firstRun", true)){
+			Log.d("MAINMENU", "First Run. Initializing Settings.");
+			sharedPref.edit().putBoolean("firstRun", false)
+							 .putFloat("distance", 5.0f)
+							 .putBoolean("vibrator", true)
+							 .putBoolean("sound", true)
+							 .putBoolean("savetrip", false)
+							 .putBoolean("snooze", false)
+							 .putBoolean("units", false)
+							 .commit();
+		}
 		
 		locationButton = (Button) findViewById(R.id.location);
 		locationButton.setOnClickListener(new OnClickListener(){

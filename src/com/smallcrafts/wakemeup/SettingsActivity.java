@@ -188,7 +188,7 @@ public class SettingsActivity extends Activity {
 		soundSwitch.setChecked(sharedPref.getBoolean("sound", true));
 		saveTripSwitch.setChecked(sharedPref.getBoolean("savetrip", false));
 		snoozeSwitch.setChecked(sharedPref.getBoolean("snooze", false));
-		unitsSwitch.setChecked(sharedPref.getBoolean("units", true));
+		unitsSwitch.setChecked(sharedPref.getBoolean("units", false));
 	}
 	
 	/**
